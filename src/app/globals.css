@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+@theme {
+  --font-caveat: var(--font-caveat), "Baloo Da 2", "Hind Siliguri", "Noto Sans Bengali", cursive, sans-serif;
+  --font-patrick: var(--font-patrick), "Baloo Da 2", "Hind Siliguri", "Noto Sans Bengali", cursive, sans-serif;
+  --font-kalam: var(--font-kalam), "Hind Siliguri", "Noto Sans Bengali", cursive, sans-serif;
+  --font-nunito: var(--font-nunito), "Hind Siliguri", "Noto Sans Bengali", system-ui, sans-serif;
+
+  /* Explicit semantic tokens */
+  --font-handwritten: var(--font-caveat), "Baloo Da 2", "Hind Siliguri", "Noto Sans Bengali", cursive, sans-serif;
+  --font-diary: var(--font-patrick), "Baloo Da 2", "Hind Siliguri", "Noto Sans Bengali", cursive, sans-serif;
+  --font-poetry: var(--font-kalam), "Hind Siliguri", "Noto Sans Bengali", cursive, sans-serif;
+  --font-body: var(--font-nunito), "Hind Siliguri", "Noto Sans Bengali", system-ui, sans-serif;
+
+  /* Centralized utility tokens */
+  --font-title: var(--font-caveat);
+  --font-heading: var(--font-patrick);
+  --font-decorative: var(--font-kalam);
+  --font-reading: var(--font-nunito);
+
+  /* Fallback aliases to cascade smoothly across existing components */
+  --font-serif: var(--font-caveat);
+  --font-sans: var(--font-nunito);
+  --font-literary: var(--font-kalam);
+  --font-fredoka: var(--font-patrick);
+  --font-baloo: var(--font-kalam);
+
+  --color-ivory: #FFF9EC;
+  --color-cream: #FFF3D9;
+  --color-sunflower: #F4C542;
+  --color-golden: #E8AF30;
+  --color-sky: #DCEFF8;
+  --color-leaf: #718B55;
+  --color-leaf-dark: #4A6034;
+  --color-deep-brown: #3B3028;
+  --color-sepia: #6B584C;
+  --color-warm-border: #EADBCE;
+}
+
+:root {
+  --background: #FFF9EC;
+  --foreground: #3B3028;
+  color-scheme: light;
+}
+
+/* Light theme enforcement */
+html {
+  color-scheme: light;
+  background-color: #FFF9EC;
+}
+
+body {
+  background-color: #FFF9EC;
+  color: #3B3028;
+  font-family: var(--font-nunito), "Hind Siliguri", "Noto Sans Bengali", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* Botanical animations & smooth transitions */
+@keyframes sway-gentle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(2.5deg);
+  }
+}
+
+@keyframes sway-breeze {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-3.5deg);
+  }
+}
+
+@keyframes sun-glow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes ray-shimmer {
+  0%, 100% {
+    opacity: 0.35;
+    transform: rotate(0deg);
+  }
+  50% {
+    opacity: 0.6;
+    transform: rotate(4deg);
+  }
+}
+
+@keyframes float-particle {
+  0% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.75;
+  }
+  85% {
+    opacity: 0.75;
+  }
+  100% {
+    transform: translateY(-80px) translateX(25px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

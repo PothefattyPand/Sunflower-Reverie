@@ -1,0 +1,509 @@
+"use client";
+
+import { useState, useTransition, useRef } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  Feather,
+  Heading,
+  Image as ImageIcon,
+  Italic,
+  Bold,
+  Quote,
+  Sparkles,
+  Upload,
+  AlertCircle,
+} from "lucide-react";
+import { savePublicationAction, uploadAssetAction } from "@/app/author/dashboard/actions";
+
+interface PublicationData {
+  id?: string;
+  title: string;
+  subtitle?: string | null;
+  slug: string;
+  category: string;
+  writing_subtype?: string | null;
+  excerpt: string;
+  body: string;
+  cover_image?: string | null;
+  tags?: string[] | null;
+  status: "draft" | "published";
+  reading_time?: string | null;
+}
+
+interface WritingEditorProps {
+  mode: "create" | "edit";
+  initialData?: PublicationData;
+}
+
+export function WritingEditor({ mode, initialData }: WritingEditorProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [isUploading, setIsUploading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Form fields state
+  const [title, setTitle] = useState(initialData?.title || "");
+  const [subtitle, setSubtitle] = useState(initialData?.subtitle || "");
+  const [slug, setSlug] = useState(initialData?.slug || "");
+  const [category, setCategory] = useState(initialData?.category || "blog");
+  const [writingSubtype, setWritingSubtype] = useState(initialData?.writing_subtype || "essay");
+  const [excerpt, setExcerpt] = useState(initialData?.excerpt || "");
+  const [body, setBody] = useState(initialData?.body || "");
+  const [coverImage, setCoverImage] = useState(initialData?.cover_image || "");
+  const [tags, setTags] = useState(initialData?.tags?.join(", ") || "");
+  const [status, setStatus] = useState<"draft" | "published">(initialData?.status || "draft");
+
+  const bodyTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-generate slug from title if user hasn't explicitly customized it
+  const handleTitleChange = (val: string) => {
+    setTitle(val);
+    if (mode === "create" && (!slug || slug === title.toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-"))) {
+      setSlug(
+        val
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .slice(0, 60)
+      );
+    }
+  };
+
+  // Helper to insert markdown formatting at cursor position
+  const insertFormatting = (prefix: string, suffix: string = "") => {
+    const textarea = bodyTextareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = body.substring(start, end);
+    const replacement = `${prefix}${selectedText || "text"}${suffix}`;
+
+    const newBody = body.substring(0, start) + replacement + body.substring(end);
+    setBody(newBody);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + prefix.length, start + replacement.length - suffix.length);
+    }, 50);
+  };
+
+  // Handle direct image file upload
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setErrorMessage(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await uploadAssetAction(formData);
+    setIsUploading(false);
+
+    if (res.error) {
+      setErrorMessage(res.error);
+    } else if (res.url) {
+      setCoverImage(res.url);
+    }
+  };
+
+  // Form submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+
+    startTransition(async () => {
+      const formData = new FormData();
+      if (initialData?.id) {
+        formData.append("id", initialData.id);
+      }
+      formData.append("title", title);
+      formData.append("subtitle", subtitle);
+      formData.append("slug", slug);
+      formData.append("category", category);
+      if (category === "writing") {
+        formData.append("writingSubtype", writingSubtype);
+      }
+      formData.append("excerpt", excerpt);
+      formData.append("body", body);
+      formData.append("coverImage", coverImage);
+      formData.append("tags", tags);
+      formData.append("status", status);
+
+      const res = await savePublicationAction(null, formData);
+      if (res.error) {
+        setErrorMessage(res.error);
+      } else {
+        router.push("/author/dashboard");
+        router.refresh();
+      }
+    });
+  };
+
+  const isPoetry = category === "poetry";
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-8">
+      {/* Top Action Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-[#EADBCE]">
+        <Link
+          href="/author/dashboard"
+          className="inline-flex items-center gap-2 text-base font-patrick font-bold text-[#6B584C] hover:text-[#3B3028] transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 text-[#E8AF30]" />
+          <span>Back to My Writing Desk</span>
+        </Link>
+
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <Link
+            href="/author/dashboard"
+            className="px-5 py-2.5 rounded-full border border-[#EADBCE] text-sm font-patrick font-bold text-[#6B584C] hover:text-[#3B3028] transition-colors"
+          >
+            Cancel
+          </Link>
+
+          <button
+            type="submit"
+            disabled={isPending || isUploading}
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-7 py-2.5 rounded-full bg-[#E8AF30] hover:bg-[#F4C542] text-[#3B3028] font-patrick text-base font-bold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+          >
+            <Feather className="w-4 h-4" />
+            <span>
+              {isPending
+                ? "Preserving Words..."
+                : mode === "create"
+                ? status === "published"
+                  ? "Publish to Sanctuary"
+                  : "Save to My Drafts"
+                : "Update Publication"}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {errorMessage && (
+        <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-sm font-nunito flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p className="font-bold">Notice from Writing Desk</p>
+            <p className="leading-relaxed">{errorMessage}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Editor Body Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Main Writing Canvas (8 cols) */}
+        <div className="lg:col-span-8 space-y-6">
+          {/* Title */}
+          <div className="space-y-1.5">
+            <label htmlFor="title" className="block text-xs font-patrick uppercase tracking-wider text-[#718B55]">
+              Title of the Piece *
+            </label>
+            <input
+              id="title"
+              type="text"
+              required
+              value={title}
+              onChange={(e) => handleTitleChange(e.target.value)}
+              placeholder="e.g., The Geometry of Morning Light"
+              className="w-full px-4 py-3 rounded-2xl bg-[#FFF3D9]/60 border border-[#EADBCE] font-caveat text-3xl sm:text-4xl text-[#3B3028] placeholder-[#6B584C]/50 focus:outline-hidden focus:border-[#E8AF30] focus:ring-1 focus:ring-[#E8AF30] transition-colors"
+            />
+          </div>
+
+          {/* Subtitle */}
+          <div className="space-y-1.5">
+            <label htmlFor="subtitle" className="block text-xs font-patrick uppercase tracking-wider text-[#718B55]">
+              Subtitle / Epigraph (Optional)
+            </label>
+            <input
+              id="subtitle"
+              type="text"
+              value={subtitle}
+              onChange={(e) => setSubtitle(e.target.value)}
+              placeholder="e.g., Reflections on dawn shadows and the writing day"
+              className="w-full px-4 py-2.5 rounded-xl bg-[#FFF3D9]/40 border border-[#EADBCE] font-kalam text-lg text-[#6B584C] placeholder-[#6B584C]/50 focus:outline-hidden focus:border-[#E8AF30] transition-colors"
+            />
+          </div>
+
+          {/* Body Content with Formatting Toolbar */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label htmlFor="body" className="block text-xs font-patrick uppercase tracking-wider text-[#718B55]">
+                {isPoetry ? "Verses & Stanzas (Poetry)" : "Manuscript Body (Prose)"} *
+              </label>
+
+              {isPoetry && (
+                <span className="text-xs font-kalam text-[#E8AF30]">
+                  Line breaks and stanzas are preserved exactly
+                </span>
+              )}
+            </div>
+
+            {/* Handwritten Formatting Bar */}
+            <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-t-xl bg-[#FFF3D9] border-t border-x border-[#EADBCE]">
+              <button
+                type="button"
+                onClick={() => insertFormatting("### ")}
+                className="p-1.5 rounded-md hover:bg-[#FFF9EC] text-[#3B3028] transition-colors"
+                title="Heading"
+              >
+                <Heading className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => insertFormatting("**", "**")}
+                className="p-1.5 rounded-md hover:bg-[#FFF9EC] text-[#3B3028] transition-colors"
+                title="Bold"
+              >
+                <Bold className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => insertFormatting("*", "*")}
+                className="p-1.5 rounded-md hover:bg-[#FFF9EC] text-[#3B3028] transition-colors"
+                title="Italic"
+              >
+                <Italic className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => insertFormatting("> ")}
+                className="p-1.5 rounded-md hover:bg-[#FFF9EC] text-[#3B3028] transition-colors"
+                title="Quotation"
+              >
+                <Quote className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => insertFormatting("\n\n---\n\n")}
+                className="px-2 py-1 text-xs font-patrick rounded-md hover:bg-[#FFF9EC] text-[#3B3028] transition-colors"
+                title="Stanza / Section Break"
+              >
+                Divider
+              </button>
+            </div>
+
+            {/* Textarea */}
+            <textarea
+              id="body"
+              ref={bodyTextareaRef}
+              required
+              rows={isPoetry ? 16 : 20}
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder={
+                isPoetry
+                  ? "Type your verses here...\nSingle line breaks are preserved.\nDouble line breaks form new stanzas."
+                  : "Begin writing your thoughts, essay, or journal reflections beneath the morning light..."
+              }
+              className={`w-full p-4 rounded-b-xl bg-[#FFF9EC] border border-[#EADBCE] text-[#3B3028] text-base sm:text-lg leading-relaxed placeholder-[#6B584C]/40 focus:outline-hidden focus:border-[#E8AF30] focus:ring-1 focus:ring-[#E8AF30] transition-colors ${
+                isPoetry ? "font-kalam whitespace-pre-wrap" : "font-nunito"
+              }`}
+            />
+          </div>
+
+          {/* Excerpt */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label htmlFor="excerpt" className="block text-xs font-patrick uppercase tracking-wider text-[#718B55]">
+                Excerpt / Summary *
+              </label>
+              <span className="text-xs font-nunito text-[#6B584C]">
+                Appears on cards and reading previews
+              </span>
+            </div>
+            <textarea
+              id="excerpt"
+              required
+              rows={3}
+              value={excerpt}
+              onChange={(e) => setExcerpt(e.target.value)}
+              placeholder="A brief 1-2 sentence welcoming reflection that invites readers in..."
+              className="w-full p-3 rounded-xl bg-[#FFF9EC] border border-[#EADBCE] text-sm text-[#3B3028] placeholder-[#6B584C]/50 focus:outline-hidden focus:border-[#E8AF30] font-nunito transition-colors"
+            />
+          </div>
+        </div>
+
+        {/* Sidebar Settings (4 cols) */}
+        <div className="lg:col-span-4 space-y-6">
+          {/* Publishing Status Card */}
+          <div className="p-6 rounded-2xl bg-[#FFF3D9]/80 border border-[#EADBCE] space-y-4">
+            <span className="font-patrick text-sm font-bold uppercase tracking-wider text-[#718B55] flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-[#E8AF30]" />
+              Publication Status
+            </span>
+
+            <div className="space-y-2">
+              <label className="flex items-center gap-3 p-3 rounded-xl border border-[#EADBCE] bg-[#FFF9EC] cursor-pointer hover:border-[#E8AF30] transition-colors">
+                <input
+                  type="radio"
+                  name="status_radio"
+                  value="draft"
+                  checked={status === "draft"}
+                  onChange={() => setStatus("draft")}
+                  className="text-[#E8AF30] focus:ring-[#E8AF30]"
+                />
+                <div>
+                  <span className="font-patrick text-base font-bold text-[#3B3028] block">
+                    Save as Draft
+                  </span>
+                  <span className="text-xs font-nunito text-[#6B584C] block">
+                    Visible only to you on your desk
+                  </span>
+                </div>
+              </label>
+
+              <label className="flex items-center gap-3 p-3 rounded-xl border border-[#EADBCE] bg-[#FFF9EC] cursor-pointer hover:border-[#E8AF30] transition-colors">
+                <input
+                  type="radio"
+                  name="status_radio"
+                  value="published"
+                  checked={status === "published"}
+                  onChange={() => setStatus("published")}
+                  className="text-[#E8AF30] focus:ring-[#E8AF30]"
+                />
+                <div>
+                  <span className="font-patrick text-base font-bold text-[#3B3028] block">
+                    Publish to Sanctuary
+                  </span>
+                  <span className="text-xs font-nunito text-[#6B584C] block">
+                    Freely readable by all visitors
+                  </span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          {/* Folio Category */}
+          <div className="p-6 rounded-2xl bg-[#FFF3D9]/60 border border-[#EADBCE] space-y-4">
+            <span className="font-patrick text-sm font-bold uppercase tracking-wider text-[#718B55]">
+              Folio Category
+            </span>
+
+            <div className="space-y-2">
+              <label htmlFor="category" className="block text-xs font-nunito text-[#6B584C]">
+                Select which archive this piece belongs to:
+              </label>
+              <select
+                id="category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl bg-[#FFF9EC] border border-[#EADBCE] text-sm font-patrick font-bold text-[#3B3028] focus:outline-hidden focus:border-[#E8AF30]"
+              >
+                <option value="blog">Blogs (Thoughts Beneath the Sun)</option>
+                <option value="poetry">Poetry (Verses in Bloom)</option>
+                <option value="journal">Journal (Pages of Reflection)</option>
+                <option value="writing">Writings (Letters &amp; Other Words)</option>
+              </select>
+            </div>
+
+            {category === "writing" && (
+              <div className="space-y-2 pt-2 border-t border-[#EADBCE]/70">
+                <label htmlFor="subtype" className="block text-xs font-nunito text-[#6B584C]">
+                  Writing Subtype:
+                </label>
+                <select
+                  id="subtype"
+                  value={writingSubtype}
+                  onChange={(e) => setWritingSubtype(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-[#FFF9EC] border border-[#EADBCE] text-sm font-patrick text-[#3B3028]"
+                >
+                  <option value="essay">Essay</option>
+                  <option value="short-story">Short Story</option>
+                  <option value="letter">Epistolary Letter</option>
+                  <option value="reflection">Contemplative Reflection</option>
+                  <option value="creative-prose">Creative Prose</option>
+                </select>
+              </div>
+            )}
+          </div>
+
+          {/* Slug & Tags */}
+          <div className="p-6 rounded-2xl bg-[#FFF3D9]/60 border border-[#EADBCE] space-y-4">
+            <span className="font-patrick text-sm font-bold uppercase tracking-wider text-[#718B55]">
+              URL Slug &amp; Themes
+            </span>
+
+            <div className="space-y-1.5">
+              <label htmlFor="slug" className="block text-xs font-nunito text-[#6B584C]">
+                Unique URL Slug:
+              </label>
+              <input
+                id="slug"
+                type="text"
+                required
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                placeholder="my-piece-title"
+                className="w-full px-3 py-2 rounded-xl bg-[#FFF9EC] border border-[#EADBCE] text-xs font-mono text-[#3B3028]"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label htmlFor="tags" className="block text-xs font-nunito text-[#6B584C]">
+                Themes / Tags (Comma separated):
+              </label>
+              <input
+                id="tags"
+                type="text"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                placeholder="Morning, Solitude, Sunflowers"
+                className="w-full px-3 py-2 rounded-xl bg-[#FFF9EC] border border-[#EADBCE] text-xs font-nunito text-[#3B3028]"
+              />
+            </div>
+          </div>
+
+          {/* Cover Image Upload (Supabase Storage) */}
+          <div className="p-6 rounded-2xl bg-[#FFF3D9]/60 border border-[#EADBCE] space-y-3">
+            <span className="font-patrick text-sm font-bold uppercase tracking-wider text-[#718B55] flex items-center gap-1.5">
+              <ImageIcon className="w-4 h-4 text-[#E8AF30]" />
+              Cover Artwork
+            </span>
+
+            {coverImage ? (
+              <div className="space-y-2">
+                <div className="w-full h-32 rounded-xl overflow-hidden border border-[#EADBCE] relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={coverImage} alt="Cover Preview" className="w-full h-full object-cover" />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCoverImage("")}
+                  className="text-xs font-patrick text-red-700 hover:underline"
+                >
+                  Remove Cover Image
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  disabled={isUploading}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-dashed border-[#E8AF30] bg-[#FFF9EC] hover:bg-[#FFF3D9] text-xs font-patrick font-bold text-[#3B3028] transition-colors cursor-pointer"
+                >
+                  <Upload className="w-4 h-4 text-[#E8AF30]" />
+                  <span>{isUploading ? "Uploading to Storage..." : "Upload Artwork (Max 5MB)"}</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </form>
+  );
+}
