@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import {
-  fetchCategorySlugs,
   fetchPublicationBySlug,
   fetchPublicationsByCategory,
   getRelatedPublications,
@@ -13,19 +12,12 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-export async function generateStaticParams() {
-  const slugs = await fetchCategorySlugs("blog");
-  return slugs.map((slug) => ({ slug }));
-}
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const post = await fetchPublicationBySlug("blog", slug);
 
   if (!post) {
-    return {
-      title: "Thought Not Found | Sunflower Reverie",
-    };
+    notFound();
   }
 
   const title = post.seoTitle || post.title;

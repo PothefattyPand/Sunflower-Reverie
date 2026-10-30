@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, Feather, Sparkles, BookOpen, SunMedium } from "lucide-react";
 import { Container } from "@/components/common/Container";
 import { AuthorProfile } from "@/types";
@@ -52,12 +53,13 @@ export function AuthorIntroduction({ authors = [] }: AuthorIntroductionProps) {
 
                 {/* Portrait circle */}
                 <div className="text-center space-y-4 mb-5">
-                  <div className="mx-auto w-28 h-28 rounded-full border-3 border-[#E8AF30] bg-[#FFF9EC] flex items-center justify-center shadow-inner overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                  <div className="relative mx-auto w-28 h-28 rounded-full border-3 border-[#E8AF30] bg-[#FFF9EC] flex items-center justify-center shadow-inner overflow-hidden group-hover:scale-105 transition-transform duration-300">
                     {author1.pictureUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={author1.pictureUrl}
                         alt={author1.name}
+                        width={112}
+                        height={112}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -120,12 +122,13 @@ export function AuthorIntroduction({ authors = [] }: AuthorIntroductionProps) {
                 </div>
 
                 <div className="text-center space-y-4 mb-5">
-                  <div className="mx-auto w-28 h-28 rounded-full border-3 border-[#E8AF30] bg-[#FFF9EC] flex items-center justify-center shadow-inner overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                  <div className="relative mx-auto w-28 h-28 rounded-full border-3 border-[#E8AF30] bg-[#FFF9EC] flex items-center justify-center shadow-inner overflow-hidden group-hover:scale-105 transition-transform duration-300">
                     {author2.pictureUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={author2.pictureUrl}
                         alt={author2.name}
+                        width={112}
+                        height={112}
                         className="w-full h-full object-cover"
                       />
                     ) : (

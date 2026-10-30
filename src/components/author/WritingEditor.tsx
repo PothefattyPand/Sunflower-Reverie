@@ -2,18 +2,24 @@
 
 import { useState, useTransition, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Feather,
   Heading,
   Image as ImageIcon,
+  ImagePlus,
   Italic,
   Bold,
   Quote,
   Sparkles,
   Upload,
   AlertCircle,
+  RefreshCw,
+  Trash2,
+  X,
+  Check,
 } from "lucide-react";
 import { savePublicationAction, uploadAssetAction } from "@/app/author/dashboard/actions";
 
@@ -58,6 +64,15 @@ export function WritingEditor({ mode, initialData }: WritingEditorProps) {
   const bodyTextareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Inline image insertion modal state
+  const [showInlineImageModal, setShowInlineImageModal] = useState(false);
+  const [inlineImageUrl, setInlineImageUrl] = useState("");
+  const [inlineImageAlt, setInlineImageAlt] = useState("");
+  const [isInlineUploading, setIsInlineUploading] = useState(false);
+  const [inlineUploadError, setInlineUploadError] = useState<string | null>(null);
+  const cursorPosRef = useRef<{ start: number; end: number }>({ start: 0, end: 0 });
+  const inlineFileInputRef = useRef<HTMLInputElement>(null);
+
   // Auto-generate slug from title if user hasn't explicitly customized it
   const handleTitleChange = (val: string) => {
     setTitle(val);
@@ -91,10 +106,108 @@ export function WritingEditor({ mode, initialData }: WritingEditorProps) {
     }, 50);
   };
 
-  // Handle direct image file upload
+  // Open inline image insertion modal
+  const handleOpenInlineImageModal = () => {
+    if (bodyTextareaRef.current) {
+      cursorPosRef.current = {
+        start: bodyTextareaRef.current.selectionStart,
+        end: bodyTextareaRef.current.selectionEnd,
+      };
+    } else {
+      cursorPosRef.current = { start: body.length, end: body.length };
+    }
+    setInlineImageUrl("");
+    setInlineImageAlt("");
+    setInlineUploadError(null);
+    setShowInlineImageModal(true);
+  };
+
+  // Upload inline image directly to author's Supabase Storage folder
+  const handleInlineFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setInlineUploadError("Image exceeds 5MB size limit. Please choose a smaller image.");
+      if (inlineFileInputRef.current) inlineFileInputRef.current.value = "";
+      return;
+    }
+
+    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/gif"];
+    if (!validTypes.includes(file.type)) {
+      setInlineUploadError("Invalid image format. Allowed formats: JPG, PNG, WEBP, AVIF, GIF.");
+      if (inlineFileInputRef.current) inlineFileInputRef.current.value = "";
+      return;
+    }
+
+    setIsInlineUploading(true);
+    setInlineUploadError(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await uploadAssetAction(formData);
+    setIsInlineUploading(false);
+    if (inlineFileInputRef.current) inlineFileInputRef.current.value = "";
+
+    if (res.error) {
+      setInlineUploadError(res.error);
+    } else if (res.url) {
+      setInlineImageUrl(res.url);
+      if (!inlineImageAlt.trim()) {
+        const cleanName = file.name
+          .replace(/\.[^/.]+$/, "")
+          .replace(/[-_]+/g, " ")
+          .trim();
+        setInlineImageAlt(cleanName);
+      }
+    }
+  };
+
+  // Insert inline image markdown at current cursor position
+  const handleInsertInlineImage = () => {
+    if (!inlineImageUrl.trim()) {
+      setInlineUploadError("Please upload an image or provide an image URL first.");
+      return;
+    }
+
+    const sanitizedAlt = (inlineImageAlt.trim() || "Manuscript Illustration")
+      .replace(/[\[\]]/g, "");
+    const url = inlineImageUrl.trim();
+    const markdownImage = `\n\n![${sanitizedAlt}](${url})\n\n`;
+
+    const start = cursorPosRef.current.start;
+    const end = cursorPosRef.current.end;
+    const newBody = body.substring(0, start) + markdownImage + body.substring(end);
+    setBody(newBody);
+    setShowInlineImageModal(false);
+
+    setTimeout(() => {
+      if (bodyTextareaRef.current) {
+        bodyTextareaRef.current.focus();
+        const newPos = start + markdownImage.length;
+        bodyTextareaRef.current.setSelectionRange(newPos, newPos);
+      }
+    }, 50);
+  };
+
+  // Handle direct image file upload for cover artwork
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMessage("Cover artwork exceeds the 5MB size limit. Please choose a smaller image.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/gif"];
+    if (!validTypes.includes(file.type)) {
+      setErrorMessage("Invalid image format. Allowed formats: JPG, PNG, WEBP, AVIF, GIF.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
 
     setIsUploading(true);
     setErrorMessage(null);
@@ -104,6 +217,7 @@ export function WritingEditor({ mode, initialData }: WritingEditorProps) {
 
     const res = await uploadAssetAction(formData);
     setIsUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
 
     if (res.error) {
       setErrorMessage(res.error);
@@ -287,6 +401,16 @@ export function WritingEditor({ mode, initialData }: WritingEditorProps) {
               >
                 Divider
               </button>
+              <div className="h-4 w-px bg-[#EADBCE] mx-0.5" />
+              <button
+                type="button"
+                onClick={handleOpenInlineImageModal}
+                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-patrick font-bold rounded-md hover:bg-[#FFF9EC] text-[#3B3028] transition-colors cursor-pointer"
+                title="Insert Image into Manuscript"
+              >
+                <ImagePlus className="w-4 h-4 text-[#E8AF30]" />
+                <span>Insert Image</span>
+              </button>
             </div>
 
             {/* Textarea */}
@@ -468,18 +592,45 @@ export function WritingEditor({ mode, initialData }: WritingEditorProps) {
             </span>
 
             {coverImage ? (
-              <div className="space-y-2">
-                <div className="w-full h-32 rounded-xl overflow-hidden border border-[#EADBCE] relative">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={coverImage} alt="Cover Preview" className="w-full h-full object-cover" />
+              <div className="space-y-3">
+                <div className="relative w-full h-36 rounded-xl overflow-hidden border border-[#EADBCE] shadow-inner bg-[#FFF9EC]">
+                  <Image
+                    src={coverImage}
+                    alt="Cover Artwork Preview"
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setCoverImage("")}
-                  className="text-xs font-patrick text-red-700 hover:underline"
-                >
-                  Remove Cover Image
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={isUploading}
+                    onClick={() => {
+                      setErrorMessage(null);
+                      fileInputRef.current?.click();
+                    }}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#FFF9EC] border border-[#EADBCE] hover:border-[#E8AF30] text-xs font-patrick font-bold text-[#3B3028] transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 text-[#E8AF30] ${isUploading ? "animate-spin" : ""}`} />
+                    <span>{isUploading ? "Uploading..." : "Replace Artwork"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCoverImage("")}
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#FFF9EC] border border-[#EADBCE] hover:border-red-400 text-xs font-patrick font-bold text-red-700 transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-red-600" />
+                    <span>Remove</span>
+                  </button>
+                </div>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
               </div>
             ) : (
               <div className="space-y-3">
@@ -493,17 +644,185 @@ export function WritingEditor({ mode, initialData }: WritingEditorProps) {
                 <button
                   type="button"
                   disabled={isUploading}
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-dashed border-[#E8AF30] bg-[#FFF9EC] hover:bg-[#FFF3D9] text-xs font-patrick font-bold text-[#3B3028] transition-colors cursor-pointer"
+                  onClick={() => {
+                    setErrorMessage(null);
+                    fileInputRef.current?.click();
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-dashed border-[#E8AF30] bg-[#FFF9EC] hover:bg-[#FFF3D9] text-xs font-patrick font-bold text-[#3B3028] transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  <Upload className="w-4 h-4 text-[#E8AF30]" />
-                  <span>{isUploading ? "Uploading to Storage..." : "Upload Artwork (Max 5MB)"}</span>
+                  {isUploading ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 text-[#E8AF30] animate-spin" />
+                      <span>Uploading to Storage...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 text-[#E8AF30]" />
+                      <span>Upload Artwork (Max 5MB)</span>
+                    </>
+                  )}
                 </button>
               </div>
             )}
+
+            <p className="text-[11px] font-nunito text-[#6B584C] leading-tight">
+              Supported: JPG, PNG, WebP, AVIF, GIF (max 5MB). Stored in your author folder in the public bucket.
+            </p>
           </div>
         </div>
       </div>
+
+      {/* Inline Image Insertion Modal */}
+      {showInlineImageModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="inline-image-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+        >
+          <div className="relative w-full max-w-lg rounded-3xl border-2 border-[#EADBCE] bg-[#FFF9EC] p-6 sm:p-8 shadow-xl space-y-6">
+            <div className="flex items-center justify-between pb-3 border-b border-[#EADBCE]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-[#E8AF30]/20 border border-[#E8AF30] flex items-center justify-center">
+                  <ImagePlus className="w-4 h-4 text-[#E8AF30]" />
+                </div>
+                <h3 id="inline-image-title" className="font-patrick text-2xl font-bold text-[#3B3028]">
+                  Insert Image into Manuscript
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowInlineImageModal(false)}
+                className="p-1 rounded-full hover:bg-[#FFF3D9] text-[#6B584C] transition-colors cursor-pointer"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {inlineUploadError && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-nunito text-red-700 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{inlineUploadError}</span>
+              </div>
+            )}
+
+            {/* Upload Area or Direct URL */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-patrick uppercase tracking-wider text-[#718B55] mb-1.5">
+                  1. Select or Upload Image (Max 5MB)
+                </label>
+                <input
+                  type="file"
+                  ref={inlineFileInputRef}
+                  accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+                  onChange={handleInlineFileUpload}
+                  className="hidden"
+                />
+
+                <button
+                  type="button"
+                  disabled={isInlineUploading}
+                  onClick={() => {
+                    setInlineUploadError(null);
+                    inlineFileInputRef.current?.click();
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-dashed border-[#E8AF30] bg-[#FFF3D9]/60 hover:bg-[#FFF3D9] text-xs font-patrick font-bold text-[#3B3028] transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {isInlineUploading ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 text-[#E8AF30] animate-spin" />
+                      <span>Uploading to Supabase Storage...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 text-[#E8AF30]" />
+                      <span>Choose File from Device</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-xs font-nunito text-[#6B584C] mb-1">
+                  Or paste direct Supabase image URL:
+                </label>
+                <input
+                  type="url"
+                  value={inlineImageUrl}
+                  onChange={(e) => {
+                    setInlineImageUrl(e.target.value);
+                    setInlineUploadError(null);
+                  }}
+                  placeholder="https://shxitgbxfestrbhdukku.supabase.co/storage/v1/object/public/sunflower-assets/..."
+                  className="w-full px-3 py-2 rounded-xl bg-[#FFF3D9]/40 border border-[#EADBCE] text-xs font-nunito text-[#3B3028] focus:outline-hidden focus:border-[#E8AF30]"
+                />
+              </div>
+
+              {/* Preview */}
+              {inlineImageUrl && (
+                <div className="space-y-2">
+                  <span className="block text-xs font-patrick uppercase tracking-wider text-[#718B55]">
+                    Preview:
+                  </span>
+                  <div className="relative w-full h-40 rounded-xl overflow-hidden border border-[#EADBCE] shadow-inner bg-[#FFF3D9]/30">
+                    <Image
+                      src={inlineImageUrl}
+                      alt={inlineImageAlt || "Inline preview"}
+                      fill
+                      className="object-contain"
+                      unoptimized
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Alt text field */}
+              <div className="space-y-1.5">
+                <label htmlFor="inline-alt" className="block text-xs font-patrick uppercase tracking-wider text-[#718B55]">
+                  2. Accessible Alt Text &amp; Caption
+                </label>
+                <input
+                  id="inline-alt"
+                  type="text"
+                  value={inlineImageAlt}
+                  onChange={(e) => setInlineImageAlt(e.target.value)}
+                  placeholder="e.g., Morning sunlight illuminating wet sunflower leaves"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#FFF3D9]/40 border border-[#EADBCE] text-sm font-nunito text-[#3B3028] placeholder-[#6B584C]/50 focus:outline-hidden focus:border-[#E8AF30]"
+                />
+                <p className="text-[11px] font-nunito text-[#6B584C]">
+                  Provides description for screen readers and displays as a caption beneath the illustration.
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#FFF3D9]/60 border border-[#EADBCE] text-[11px] font-nunito text-[#6B584C] leading-relaxed">
+                <span className="font-bold text-[#3B3028]">Privacy Notice:</span> Uploaded images in the public Sunflower bucket are accessible via direct URL even prior to publishing this draft.
+              </div>
+            </div>
+
+            {/* Modal actions */}
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#EADBCE]">
+              <button
+                type="button"
+                onClick={() => setShowInlineImageModal(false)}
+                className="px-4 py-2 rounded-full border border-[#EADBCE] bg-[#FFF9EC] hover:bg-[#FFF3D9] text-xs font-patrick font-semibold text-[#6B584C] transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={!inlineImageUrl.trim() || isInlineUploading}
+                onClick={handleInsertInlineImage}
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-[#E8AF30] hover:bg-[#F4C542] text-xs font-patrick font-bold text-[#3B3028] transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Insert into Manuscript</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

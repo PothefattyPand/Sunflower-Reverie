@@ -3,12 +3,13 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, Feather, Lock, Mail, ShieldAlert, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Feather, Lock, Mail, ShieldAlert, Sparkles } from "lucide-react";
 import { loginAuthorAction, AuthState } from "@/app/author/actions";
 
 export function LoginForm() {
   const searchParams = useSearchParams();
   const urlError = searchParams.get("error");
+  const urlSuccess = searchParams.get("success");
 
   const [state, formAction, isPending] = useActionState<AuthState, FormData>(
     loginAuthorAction,
@@ -22,6 +23,18 @@ export function LoginForm() {
   } else if (urlError === "not_configured") {
     initialErrorMessage =
       "Supabase backend configuration is pending. Please verify your environment variables.";
+  } else if (urlError === "recovery_failed") {
+    initialErrorMessage =
+      "The password recovery link was invalid, expired, or has already been used. Please request a fresh recovery link below.";
+  } else if (urlError === "session_required") {
+    initialErrorMessage =
+      "A valid recovery session is required. Please use the link sent to your email or enter your credentials.";
+  }
+
+  let successMessage: string | null = null;
+  if (urlSuccess === "password_updated") {
+    successMessage =
+      "Your secret password has been updated successfully beneath the morning light. You may now enter your writing desk.";
   }
 
   const errorMessage = state?.error || initialErrorMessage;
@@ -52,6 +65,16 @@ export function LoginForm() {
             <div className="space-y-1">
               <p className="font-bold">Authentication Notice</p>
               <p className="leading-relaxed">{errorMessage}</p>
+            </div>
+          </div>
+        )}
+
+        {successMessage && !errorMessage && (
+          <div className="mb-6 p-4 rounded-xl bg-[#FFF9EC] border border-[#718B55]/40 text-[#3B3028] text-xs sm:text-sm font-nunito flex items-start gap-3">
+            <CheckCircle2 className="w-5 h-5 text-[#718B55] shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-bold text-[#718B55]">Password Successfully Updated</p>
+              <p className="leading-relaxed text-[#6B584C]">{successMessage}</p>
             </div>
           </div>
         )}
@@ -99,6 +122,15 @@ export function LoginForm() {
                 className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#FFF9EC] border border-[#EADBCE] text-sm text-[#3B3028] placeholder-[#6B584C]/50 focus:outline-hidden focus:border-[#E8AF30] focus:ring-1 focus:ring-[#E8AF30] font-nunito transition-colors"
               />
             </div>
+            {/* Forgot Password Link */}
+            <div className="flex items-center justify-end pt-1">
+              <Link
+                href="/author/forgot-password"
+                className="font-patrick text-sm font-bold text-[#E8AF30] hover:text-[#3B3028] underline-offset-2 hover:underline transition-colors"
+              >
+                Forgot Password?
+              </Link>
+            </div>
           </div>
 
           {/* Login Button */}
@@ -145,4 +177,3 @@ export function LoginForm() {
     </div>
   );
 }
-

@@ -46,6 +46,16 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
+  // Protect /author/reset-password: only allow users with active recovery/auth session
+  if (pathname === "/author/reset-password") {
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/author/login";
+      url.searchParams.set("error", "session_required");
+      return NextResponse.redirect(url);
+    }
+  }
+
   // Protect /author/dashboard routes
   if (pathname.startsWith("/author/dashboard")) {
     if (!user) {

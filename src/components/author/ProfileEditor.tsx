@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowLeft,
   Feather,
@@ -14,6 +15,8 @@ import {
   BookOpen,
   Quote,
   Globe,
+  RefreshCw,
+  Trash2,
 } from "lucide-react";
 import { updateProfileAction, uploadAssetAction } from "@/app/author/dashboard/actions";
 
@@ -85,14 +88,16 @@ export function ProfileEditor({ initialProfile }: ProfileEditorProps) {
 
     // Validate size (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setErrorMessage("Image exceeds the 5MB size limit. Please choose a smaller portrait.");
+      setErrorMessage("Image exceeds the 5MB size limit. Please select a smaller portrait.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
     // Validate format
-    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/gif"];
     if (!validTypes.includes(file.type)) {
-      setErrorMessage("Please select a valid image file (JPEG, PNG, or WebP).");
+      setErrorMessage("Please select a valid image format (JPEG, PNG, WebP, AVIF, or GIF).");
+      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
@@ -104,12 +109,13 @@ export function ProfileEditor({ initialProfile }: ProfileEditorProps) {
 
     const res = await uploadAssetAction(formData);
     setIsUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
 
     if (res.error) {
       setErrorMessage(res.error);
     } else if (res.url) {
       setAvatarUrl(res.url);
-      setSuccessMessage("Portrait uploaded. Remember to save changes below.");
+      setSuccessMessage("Portrait uploaded. Click 'Save Profile' below to commit changes.");
     }
   };
 
@@ -215,13 +221,15 @@ export function ProfileEditor({ initialProfile }: ProfileEditorProps) {
           {/* Portrait Column */}
           <div className="lg:col-span-4 rounded-3xl border border-[#EADBCE] bg-[#FFF3D9]/60 p-6 flex flex-col items-center text-center space-y-4 shadow-xs">
             <div className="relative group">
-              <div className="w-36 h-36 rounded-full border-3 border-[#E8AF30] bg-[#FFF9EC] flex items-center justify-center overflow-hidden shadow-inner relative">
+              <div className="relative w-36 h-36 rounded-full border-3 border-[#E8AF30] bg-[#FFF9EC] flex items-center justify-center overflow-hidden shadow-inner">
                 {avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={avatarUrl}
-                    alt={displayName}
+                    alt={displayName || "Author Portrait"}
+                    width={144}
+                    height={144}
                     className="w-full h-full object-cover"
+                    unoptimized
                   />
                 ) : (
                   <Feather className="w-14 h-14 text-[#3B3028]/70 stroke-[1.5]" />
@@ -232,7 +240,7 @@ export function ProfileEditor({ initialProfile }: ProfileEditorProps) {
             <input
               type="file"
               ref={fileInputRef}
-              accept="image/jpeg,image/png,image/webp,image/avif"
+              accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
               onChange={handleAvatarUpload}
               className="hidden"
             />
@@ -241,26 +249,47 @@ export function ProfileEditor({ initialProfile }: ProfileEditorProps) {
               <button
                 type="button"
                 disabled={isUploading}
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => {
+                  setErrorMessage(null);
+                  fileInputRef.current?.click();
+                }}
                 className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-[#E8AF30] hover:bg-[#F4C542] text-xs font-patrick font-bold text-[#3B3028] transition-all shadow-xs disabled:opacity-50 cursor-pointer"
               >
-                <Upload className="w-3.5 h-3.5 text-[#3B3028]" />
-                <span>{isUploading ? "Uploading Portrait..." : "Upload New Portrait"}</span>
+                {isUploading ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#3B3028]" />
+                    <span>Uploading Portrait...</span>
+                  </>
+                ) : avatarUrl ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 text-[#3B3028]" />
+                    <span>Replace Portrait</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-3.5 h-3.5 text-[#3B3028]" />
+                    <span>Upload New Portrait</span>
+                  </>
+                )}
               </button>
 
               {avatarUrl && (
                 <button
                   type="button"
-                  onClick={() => setAvatarUrl("")}
-                  className="text-[11px] font-patrick text-[#6B584C] hover:text-red-700 underline transition-colors cursor-pointer"
+                  onClick={() => {
+                    setAvatarUrl("");
+                    setSuccessMessage("Portrait removed. Click 'Save Profile' below to commit changes.");
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-1.5 py-1 text-[11px] font-patrick text-red-700 hover:text-red-900 transition-colors cursor-pointer"
                 >
-                  Remove Portrait
+                  <Trash2 className="w-3 h-3" />
+                  <span>Remove Portrait</span>
                 </button>
               )}
             </div>
 
             <p className="text-[11px] font-nunito text-[#6B584C] leading-tight">
-              Supported: JPEG, PNG, WebP (max 5MB). Scoped securely to your personal author folder.
+              Supported: JPEG, PNG, WebP, AVIF, GIF (max 5MB). Assets are scoped to your author folder in the public bucket.
             </p>
           </div>
 

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Feather, Globe, Mail, Sparkles } from "lucide-react";
 import { Container } from "@/components/common/Container";
 import {
@@ -9,7 +10,6 @@ import {
   fetchPublicationsByAuthor,
 } from "@/data/publications";
 import { AuthorPublicationsListing } from "@/components/authors/AuthorPublicationsListing";
-import { SanityPortableText } from "@/components/common/SanityPortableText";
 import { getBaseUrl } from "@/lib/utils";
 
 interface PageProps {
@@ -89,11 +89,13 @@ export default async function AuthorProfilePage({ params }: PageProps) {
               <div className="relative">
                 <div className="absolute -inset-3 rounded-full bg-gradient-to-tr from-[#E8AF30]/20 via-[#FFF3D9] to-[#718B55]/20 blur-md" />
                 <div className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-full border-3 border-[#E8AF30] bg-[#FFF9EC] flex items-center justify-center shadow-inner overflow-hidden">
-                  {hasPortrait ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                  {hasPortrait && author.pictureUrl ? (
+                    <Image
                       src={author.pictureUrl}
                       alt={author.name}
+                      width={176}
+                      height={176}
+                      priority
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -141,8 +143,15 @@ export default async function AuthorProfilePage({ params }: PageProps) {
                 )}
 
                 {Array.isArray(author.fullBio) && author.fullBio.length > 0 && (
-                  <div className="pt-2">
-                    <SanityPortableText value={author.fullBio} />
+                  <div className="pt-2 space-y-3 font-nunito text-base leading-relaxed text-[#3B3028]/90">
+                    {author.fullBio.map((item, idx) => {
+                      if (typeof item === "string") return <p key={idx}>{item}</p>;
+                      if (item && typeof item === "object" && "children" in item) {
+                        const text = (item.children as { text?: string }[]).map((c) => c.text || "").join("");
+                        return <p key={idx}>{text}</p>;
+                      }
+                      return null;
+                    })}
                   </div>
                 )}
               </div>

@@ -72,10 +72,10 @@ export function BlogListing({ initialPublications, authors }: BlogListingProps) 
           <Sparkles className="w-8 h-8 text-[#E8AF30]" />
         </div>
         <h2 className="font-caveat text-3xl sm:text-4xl font-bold text-[#3B3028]">
-          The Folio is Still Blossoming
+          No stories have bloomed here just yet.
         </h2>
         <p className="font-nunito text-base text-[#6B584C] leading-relaxed">
-          No blog reflections have been published in this sanctuary yet. The co-curators are tending words at the writing desk; check back soon as fresh thoughts bloom.
+          The co-curators are tending words at the writing desk; check back soon as fresh reflections bloom beneath the open sky.
         </p>
       </div>
     );

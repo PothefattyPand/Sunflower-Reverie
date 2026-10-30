@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import {
-  fetchCategorySlugs,
   fetchPublicationBySlug,
   fetchPublicationsByCategory,
   getRelatedPublications,
@@ -11,11 +10,6 @@ import { getBaseUrl } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
-}
-
-export async function generateStaticParams() {
-  const slugs = await fetchCategorySlugs("journal");
-  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

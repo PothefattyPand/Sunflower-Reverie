@@ -35,9 +35,7 @@ export interface Publication {
   date: string; // e.g. "October 28, 2026"
   isoDate: string; // "2026-10-28"
   excerpt: string;
-  body: string[]; // array of paragraphs for rich reading or fallback
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  bodyRaw?: any; // Sanity Portable Text blocks
+  body: string[]; // array of paragraphs for rich reading
   stanzas?: string[][]; // specific for poetry to preserve line breaks and stanzas
   writingSubtype?: WritingSubtype; // for filtering in /writings
   readingTime?: string;

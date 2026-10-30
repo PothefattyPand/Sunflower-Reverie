@@ -1,3 +1,4 @@
+import React, { Suspense } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -22,6 +23,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { logoutAuthorAction } from "@/app/author/actions";
 import { DeleteConfirmModal } from "@/components/author/DeleteConfirmModal";
 import { PublishToggle } from "@/components/author/PublishToggle";
+import DashboardLoading from "./loading";
 
 export const metadata: Metadata = {
   title: "My Writing Desk | Author Portal | Sunflower Reverie",
@@ -46,7 +48,7 @@ function formatDisplayDate(dateStr?: string | null): string {
   }
 }
 
-export default async function AuthorDashboardPage() {
+async function AuthorDashboardContent() {
   await connection();
 
   if (!isSupabaseConfigured) {
@@ -432,5 +434,13 @@ export default async function AuthorDashboardPage() {
         </section>
       </Container>
     </div>
+  );
+}
+
+export default function AuthorDashboardPage() {
+  return (
+    <Suspense fallback={<DashboardLoading />}>
+      <AuthorDashboardContent />
+    </Suspense>
   );
 }

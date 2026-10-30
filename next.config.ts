@@ -8,7 +8,13 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "cdn.sanity.io",
+        hostname: "shxitgbxfestrbhdukku.supabase.co",
+        pathname: "/storage/v1/object/public/sunflower-assets/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "/**",
       },
     ],
   },

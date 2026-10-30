@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Calendar, Clock, Feather, Sparkles, Tag } from "lucide-react";
 import { Container } from "@/components/common/Container";
 import { Publication } from "@/types";
@@ -6,13 +7,110 @@ import { ShareButton } from "./ShareButton";
 import { BotanicalDivider } from "./BotanicalDivider";
 import { PoetryReader } from "./PoetryReader";
 import { RelatedWritings } from "./RelatedWritings";
-import { SanityPortableText } from "@/components/common/SanityPortableText";
 
 interface PublicationLayoutProps {
   publication: Publication;
   related: Publication[];
   backHref: string;
   backLabel: string;
+}
+
+function isOptimizableImage(src: string): boolean {
+  if (!src) return false;
+  if (src.startsWith("/")) return true;
+  try {
+    const url = new URL(src);
+    return (
+      url.hostname === "shxitgbxfestrbhdukku.supabase.co" ||
+      url.hostname === "images.unsplash.com"
+    );
+  } catch {
+    return false;
+  }
+}
+
+function renderContentParagraph(paragraph: string, index: number, publicationTitle: string) {
+  // Check if paragraph is purely a standalone markdown image: ![alt](url)
+  const standaloneMatch = paragraph.trim().match(/^!\[(.*?)\]\((https?:\/\/[^\s\)]+)\)$/);
+  if (standaloneMatch) {
+    const [, altText, src] = standaloneMatch;
+    const isOptimized = isOptimizableImage(src);
+    return (
+      <figure
+        key={index}
+        className="my-8 rounded-2xl overflow-hidden border border-[#EADBCE] bg-[#FFF3D9]/60 p-4 sm:p-6 text-center shadow-xs"
+      >
+        <div className="relative w-full aspect-[16/9] max-h-[500px] overflow-hidden rounded-xl mb-3 shadow-xs">
+          <Image
+            src={src}
+            alt={altText || publicationTitle}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 768px, 800px"
+            className="object-cover"
+            loading="lazy"
+            unoptimized={!isOptimized}
+          />
+        </div>
+        {altText && (
+          <figcaption className="font-kalam text-sm sm:text-base text-[#6B584C] italic">
+            {altText}
+          </figcaption>
+        )}
+      </figure>
+    );
+  }
+
+  // Check if paragraph contains markdown images mixed with text
+  const parts = paragraph.split(/(!\[.*?\]\(https?:\/\/[^\s\)]+\))/g);
+  if (parts.length > 1) {
+    return (
+      <div key={index} className="space-y-4">
+        {parts.map((part, pIdx) => {
+          const imgMatch = part.match(/^!\[(.*?)\]\((https?:\/\/[^\s\)]+)\)$/);
+          if (imgMatch) {
+            const [, altText, src] = imgMatch;
+            const isOptimized = isOptimizableImage(src);
+            return (
+              <figure
+                key={pIdx}
+                className="my-6 rounded-2xl overflow-hidden border border-[#EADBCE] bg-[#FFF3D9]/60 p-4 text-center shadow-xs"
+              >
+                <div className="relative w-full aspect-[16/9] max-h-[450px] overflow-hidden rounded-xl mb-2 shadow-xs">
+                  <Image
+                    src={src}
+                    alt={altText || publicationTitle}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 800px"
+                    className="object-cover"
+                    loading="lazy"
+                    unoptimized={!isOptimized}
+                  />
+                </div>
+                {altText && (
+                  <figcaption className="font-kalam text-xs sm:text-sm text-[#6B584C] italic">
+                    {altText}
+                  </figcaption>
+                )}
+              </figure>
+            );
+          }
+          if (!part.trim()) return null;
+          return (
+            <p key={pIdx} className="leading-relaxed">
+              {part}
+            </p>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // Standard prose paragraph
+  return (
+    <p key={index} className="leading-relaxed">
+      {paragraph}
+    </p>
+  );
 }
 
 export function PublicationLayout({
@@ -22,6 +120,9 @@ export function PublicationLayout({
   backLabel,
 }: PublicationLayoutProps) {
   const isPoetry = publication.type === "poetry";
+  const isCoverOptimized = publication.coverImage?.src
+    ? isOptimizableImage(publication.coverImage.src)
+    : false;
 
   return (
     <article className="py-12 sm:py-20 bg-[#FFF9EC] text-[#3B3028]">
@@ -103,13 +204,17 @@ export function PublicationLayout({
         {publication.coverImage && (
           <figure className="my-8 rounded-2xl overflow-hidden border border-[#EADBCE] bg-[#FFF3D9]/60 p-4 sm:p-6 text-center">
             {publication.coverImage.src ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={publication.coverImage.src}
-                alt={publication.coverImage.alt}
-                className="w-full max-h-[500px] object-cover rounded-xl mb-3 shadow-xs"
-                loading="lazy"
-              />
+              <div className="relative w-full aspect-[16/9] max-h-[500px] overflow-hidden rounded-xl mb-3 shadow-xs">
+                <Image
+                  src={publication.coverImage.src}
+                  alt={publication.coverImage.alt || publication.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 768px, 800px"
+                  className="object-cover"
+                  priority
+                  unoptimized={!isCoverOptimized}
+                />
+              </div>
             ) : (
               <div className="w-16 h-16 mx-auto rounded-full bg-[#FFF9EC] border border-[#E8AF30] flex items-center justify-center mb-3">
                 <Feather className="w-8 h-8 text-[#3B3028]" />
@@ -128,15 +233,11 @@ export function PublicationLayout({
         {/* Main Content Area */}
         {isPoetry ? (
           <PoetryReader stanzas={publication.stanzas} body={publication.body} />
-        ) : publication.bodyRaw ? (
-          <SanityPortableText value={publication.bodyRaw} />
         ) : (
           <div className="prose prose-stone max-w-none space-y-6 text-lg sm:text-xl leading-relaxed text-[#3B3028]/95 font-nunito">
-            {publication.body.map((paragraph, index) => (
-              <p key={index} className="leading-relaxed">
-                {paragraph}
-              </p>
-            ))}
+            {publication.body.map((paragraph, index) =>
+              renderContentParagraph(paragraph, index, publication.title)
+            )}
           </div>
         )}
 
@@ -161,13 +262,15 @@ export function PublicationLayout({
         {/* Author Byline Box */}
         {publication.author && (
           <div className="my-12 p-6 sm:p-8 rounded-2xl bg-[#FFF3D9]/60 border border-[#EADBCE] flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
-            <div className="w-16 h-16 rounded-full border-2 border-[#E8AF30] bg-[#FFF9EC] flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
+            <div className="relative w-16 h-16 rounded-full border-2 border-[#E8AF30] bg-[#FFF9EC] flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
               {publication.author.pictureUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={publication.author.pictureUrl}
                   alt={publication.author.name}
+                  width={64}
+                  height={64}
                   className="w-full h-full object-cover"
+                  unoptimized={!isOptimizableImage(publication.author.pictureUrl)}
                 />
               ) : (
                 <Feather className="w-7 h-7 text-[#3B3028]/80 stroke-[1.5]" />

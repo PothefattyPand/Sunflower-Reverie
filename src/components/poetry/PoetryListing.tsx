@@ -68,10 +68,10 @@ export function PoetryListing({ initialPublications, authors }: PoetryListingPro
           <Feather className="w-8 h-8 text-[#E8AF30]" />
         </div>
         <h2 className="font-caveat text-3xl sm:text-4xl font-bold text-[#3B3028]">
-          The Verses are Still Forming
+          The first verse is still waiting to bloom.
         </h2>
         <p className="font-nunito text-base text-[#6B584C] leading-relaxed">
-          No poetic verses have been published yet. The co-curators are tending meter and cadence at the desk; return soon to read poetry in bloom.
+          The co-curators are tending meter and cadence at the desk; return soon to read poetry in bloom beneath the open sky.
         </p>
       </div>
     );

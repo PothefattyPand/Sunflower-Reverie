@@ -1,3 +1,4 @@
+import React, { Suspense } from "react";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
@@ -14,7 +15,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function NewWritingPage() {
+function NewWritingSkeleton() {
+  return (
+    <div className="py-12 sm:py-20 bg-[#FFF9EC] min-h-screen text-[#3B3028]">
+      <Container className="max-w-5xl space-y-8 animate-pulse">
+        <div className="space-y-2">
+          <div className="h-5 w-32 bg-[#FFF3D9] rounded-full border border-[#EADBCE]" />
+          <div className="h-10 w-64 bg-[#FFF3D9] rounded-2xl" />
+          <div className="h-4 w-80 bg-[#FFF3D9]/70 rounded-xl" />
+        </div>
+        <div className="h-96 rounded-3xl border-2 border-[#EADBCE] bg-[#FFF3D9]/60" />
+      </Container>
+    </div>
+  );
+}
+
+async function NewWritingContent() {
   await connection();
 
   if (!isSupabaseConfigured) {
@@ -62,3 +78,10 @@ export default async function NewWritingPage() {
   );
 }
 
+export default function NewWritingPage() {
+  return (
+    <Suspense fallback={<NewWritingSkeleton />}>
+      <NewWritingContent />
+    </Suspense>
+  );
+}

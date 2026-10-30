@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowLeft,
   ArrowRight,
@@ -9,6 +10,7 @@ import {
   Mail,
   Sparkles,
   Sun,
+  SunMedium,
 } from "lucide-react";
 import { Container } from "@/components/common/Container";
 import { BotanicalDivider } from "@/components/reading/BotanicalDivider";
@@ -78,12 +80,13 @@ export default async function AboutPage() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                      <div className="w-20 h-20 rounded-full border-2 border-[#E8AF30] bg-[#FFF9EC] flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
-                        {hasPortrait ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                      <div className="relative w-20 h-20 rounded-full border-2 border-[#E8AF30] bg-[#FFF9EC] flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
+                        {hasPortrait && author.pictureUrl ? (
+                          <Image
                             src={author.pictureUrl}
                             alt={author.name}
+                            width={80}
+                            height={80}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -126,6 +129,47 @@ export default async function AboutPage() {
                 </div>
               );
             })}
+
+            {authors.length < 2 && (
+              <div className="relative flex flex-col justify-between rounded-3xl border-2 border-dashed border-[#EADBCE] bg-[#FFF3D9]/40 p-8 shadow-xs">
+                <div>
+                  <div className="flex items-center justify-between text-[#718B55] mb-6 pb-3 border-b border-[#EADBCE]/60">
+                    <span className="font-patrick text-xs uppercase tracking-widest text-[#718B55] flex items-center gap-1.5 font-bold">
+                      <SunMedium className="w-3.5 h-3.5 text-[#E8AF30]" />
+                      The Second Writing Desk
+                    </span>
+                    <span className="text-xs font-nunito italic text-[#6B584C]">
+                      Reserved Folio
+                    </span>
+                  </div>
+
+                  <div className="text-center space-y-4 mb-5">
+                    <div className="mx-auto w-24 h-24 rounded-full border-2 border-dashed border-[#E8AF30]/70 bg-[#FFF9EC] flex items-center justify-center shadow-inner">
+                      <Feather className="w-10 h-10 text-[#6B584C]/50 stroke-[1.5]" />
+                    </div>
+
+                    <div>
+                      <h3 className="font-patrick text-2xl sm:text-3xl font-bold text-[#6B584C]">
+                        The Second Desk
+                      </h3>
+                      <p className="text-xs sm:text-sm font-nunito text-[#718B55] mt-1 font-semibold">
+                        Reserved for Co-Curator
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="font-nunito text-sm text-[#6B584C] leading-relaxed text-center mb-6 max-w-sm mx-auto">
+                    Sunflower Reverie is crafted for two authors. This desk is quietly awaiting our second co-curator to arrive beneath the afternoon sun.
+                  </p>
+                </div>
+
+                <div className="pt-4 border-t border-[#EADBCE]/60 text-center">
+                  <p className="font-kalam text-sm text-[#6B584C] italic">
+                    &ldquo;Every garden has a second seat prepared for the afternoon light.&rdquo;
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </section>
 

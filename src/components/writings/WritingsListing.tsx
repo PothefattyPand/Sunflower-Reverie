@@ -66,10 +66,10 @@ export function WritingsListing({ initialPublications, authors }: WritingsListin
           <FileText className="w-8 h-8 text-[#E8AF30]" />
         </div>
         <h2 className="font-caveat text-3xl sm:text-4xl font-bold text-[#3B3028]">
-          The Folio is Still Blossoming
+          A new collection of words will blossom here soon.
         </h2>
         <p className="font-nunito text-base text-[#6B584C] leading-relaxed">
-          No literary essays or letters have been published in this collection yet. Check back soon as our two authors gather new words for public reading.
+          Our co-curators are currently tending essays and letters at the writing desk; check back soon as fresh pages are gathered.
         </p>
       </div>
     );

@@ -68,11 +68,10 @@ export function AuthorPublicationsListing({
           <Sparkles className="w-8 h-8 text-[#E8AF30]" />
         </div>
         <h2 className="font-caveat text-3xl sm:text-4xl font-bold text-[#3B3028]">
-          Folio In Preparation
+          No publications from this author have bloomed yet.
         </h2>
         <p className="font-nunito text-base text-[#6B584C] leading-relaxed">
-          {authorName} has not published any public pieces in this sanctuary yet.
-          The writing cabinet is currently being stocked; please return soon.
+          {authorName} is currently tending words at the writing desk; return soon to explore published folios beneath the open sky.
         </p>
       </div>
     );

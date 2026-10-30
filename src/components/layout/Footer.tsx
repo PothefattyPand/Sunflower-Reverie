@@ -8,8 +8,8 @@ import { Container } from "@/components/common/Container";
 export function Footer() {
   const pathname = usePathname();
 
-  // Hide footer inside Sanity Studio or Author Dashboard workspace
-  if (pathname?.startsWith("/studio") || pathname?.startsWith("/author/dashboard")) {
+  // Hide footer inside Author Dashboard workspace
+  if (pathname?.startsWith("/author/dashboard")) {
     return null;
   }
 

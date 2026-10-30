@@ -60,8 +60,8 @@ export function Navbar() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Do not display website header inside Sanity Studio or Author Dashboard workspace
-  if (pathname?.startsWith("/studio") || pathname?.startsWith("/author/dashboard")) {
+  // Do not display website header inside Author Dashboard workspace
+  if (pathname?.startsWith("/author/dashboard")) {
     return null;
   }
 
