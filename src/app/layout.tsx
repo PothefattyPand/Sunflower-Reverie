@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     default: "Sunflower Reverie — Where Thoughts Bloom Into Words",
   },
   description:
-    "A personal, handwritten literary sanctuary inspired by sunflowers, warm sunshine, and poetic contemplation. Freely published by two authors.",
+    "A personal, handwritten literary sanctuary inspired by sunflowers, warm sunshine, and poetic contemplation.",
   openGraph: {
     type: "website",
     locale: "en_US",

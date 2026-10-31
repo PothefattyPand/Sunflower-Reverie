@@ -6,7 +6,7 @@ import { fetchPublicationsByCategory, fetchAllAuthors } from "@/data/publication
 export const metadata = {
   title: "Verses in Bloom | Poetry Collection | Sunflower Reverie",
   description:
-    "Lyrical cadences, elegies, and stanzas celebrating quiet dawns, sunflowers, and the shifting seasons by our two poets.",
+    "Lyrical cadences, elegies, and stanzas celebrating quiet dawns, sunflowers, and the shifting seasons.",
 };
 
 export default async function PoetryPage() {
@@ -37,7 +37,7 @@ export default async function PoetryPage() {
           <div className="pt-2">
             <span className="inline-flex items-center gap-1.5 text-xs text-[#6B584C] bg-[#FFF3D9]/70 px-3 py-1 rounded-full border border-[#EADBCE] font-nunito">
               <Sparkles className="w-3 h-3 text-[#E8AF30]" />
-              Two-Author Sanctuary • Poetic Verses in Bloom
+              Poetic Sanctuary • Verses in Bloom
             </span>
           </div>
         </header>

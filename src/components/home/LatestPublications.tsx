@@ -33,7 +33,7 @@ export function LatestPublications({ latest }: LatestPublicationsProps) {
             href: `/${catPath}/${p.slug}`,
             isSample: p.isSampleContent,
             authorName: p.author?.name || "Author",
-            authorSlug: p.author?.slug || "author-one",
+            authorSlug: (p.isAnonymous ? undefined : p.author?.slug) || undefined,
           };
         })
       : [];
@@ -52,7 +52,7 @@ export function LatestPublications({ latest }: LatestPublicationsProps) {
               Latest Publications
             </h2>
             <p className="font-nunito text-base text-[#6B584C]">
-              Continuous streams of thought and verse from our two co-curators.
+              Continuous streams of thought and verse from our literary sanctuary.
             </p>
           </div>
 
@@ -71,7 +71,7 @@ export function LatestPublications({ latest }: LatestPublicationsProps) {
               Fresh pages are being penned at the writing desk.
             </h3>
             <p className="font-nunito text-base text-[#6B584C] leading-relaxed">
-              New reflections, poems, and journal entries will appear in this dispatch stream as our co-curators publish them.
+              New reflections, poems, and journal entries will appear in this dispatch stream as new writings are published.
             </p>
           </div>
         ) : (

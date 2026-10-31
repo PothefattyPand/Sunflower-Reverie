@@ -24,6 +24,7 @@ interface ProfileData {
   id: string;
   display_name: string;
   slug: string;
+  is_public_author?: boolean | null;
   role?: string | null;
   short_bio?: string | null;
   full_bio?: string | null;
@@ -184,7 +185,7 @@ export function ProfileEditor({ initialProfile }: ProfileEditorProps) {
           <span>Back to My Writing Desk</span>
         </Link>
 
-        {slug && (
+        {initialProfile.is_public_author && slug ? (
           <Link
             href={`/authors/${slug}`}
             target="_blank"
@@ -194,6 +195,10 @@ export function ProfileEditor({ initialProfile }: ProfileEditorProps) {
             <span>View Public Author Folio</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </Link>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 text-xs font-patrick text-[#6B584C] px-3 py-1.5 rounded-full bg-[#FFF9EC] border border-[#EADBCE]">
+            <span>Private Contributing Desk</span>
+          </span>
         )}
       </div>
 
@@ -316,7 +321,7 @@ export function ProfileEditor({ initialProfile }: ProfileEditorProps) {
                   maxLength={80}
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="e.g., Mahi"
+                  placeholder="e.g., Rowan Reed"
                   className="w-full px-4 py-2.5 rounded-2xl bg-[#FFF9EC] border border-[#EADBCE] text-base font-patrick font-bold text-[#3B3028] focus:outline-hidden focus:border-[#E8AF30] focus:ring-1 focus:ring-[#E8AF30] transition-colors"
                 />
               </div>
@@ -342,12 +347,18 @@ export function ProfileEditor({ initialProfile }: ProfileEditorProps) {
                         .replace(/-+/g, "-")
                     )
                   }
-                  placeholder="e.g., mahi"
+                  placeholder="e.g., rowan-reed"
                   className="w-full px-4 py-2.5 rounded-2xl bg-[#FFF9EC] border border-[#EADBCE] text-sm font-nunito font-semibold text-[#3B3028] focus:outline-hidden focus:border-[#E8AF30] focus:ring-1 focus:ring-[#E8AF30] transition-colors"
                 />
-                <span className="text-[11px] font-nunito text-[#6B584C] block">
-                  Public link: <code className="bg-[#FFF3D9] px-1 py-0.5 rounded text-[10px]">/authors/{slug || "slug"}</code>
-                </span>
+                {initialProfile.is_public_author ? (
+                  <span className="text-[11px] font-nunito text-[#6B584C] block">
+                    Public link: <code className="bg-[#FFF3D9] px-1 py-0.5 rounded text-[10px]">/authors/{slug || "slug"}</code>
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-nunito text-[#6B584C] block">
+                    Note: Your author profile is currently private. Public writings will display as &ldquo;Anonymous&rdquo;.
+                  </span>
+                )}
               </div>
             </div>
 

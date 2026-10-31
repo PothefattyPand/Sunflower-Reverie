@@ -79,6 +79,7 @@ export async function savePublicationAction(
     const coverImage = (formData.get("coverImage") as string)?.trim() || null;
     const tagsString = (formData.get("tags") as string)?.trim() || "";
     const status = (formData.get("status") as string) === "published" ? "published" : "draft";
+    const isAnonymous = (formData.get("isAnonymous") as string) === "true";
 
     if (!title || !category || !excerpt || !body) {
       return { error: "Please provide a title, category, excerpt, and body text." };
@@ -138,6 +139,7 @@ export async function savePublicationAction(
           cover_image: coverImage,
           tags,
           status,
+          is_anonymous: isAnonymous,
           reading_time: readingTime,
           published_at: publishedAt,
           updated_at: new Date().toISOString(),
@@ -191,6 +193,7 @@ export async function savePublicationAction(
           cover_image: coverImage,
           tags,
           status,
+          is_anonymous: isAnonymous,
           reading_time: readingTime,
           published_at: publishedAt,
         })

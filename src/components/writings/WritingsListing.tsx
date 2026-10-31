@@ -69,7 +69,7 @@ export function WritingsListing({ initialPublications, authors }: WritingsListin
           A new collection of words will blossom here soon.
         </h2>
         <p className="font-nunito text-base text-[#6B584C] leading-relaxed">
-          Our co-curators are currently tending essays and letters at the writing desk; check back soon as fresh pages are gathered.
+          We are currently tending essays and letters at the writing desk; check back soon as fresh pages are gathered.
         </p>
       </div>
     );
@@ -186,12 +186,16 @@ export function WritingsListing({ initialPublications, authors }: WritingsListin
                   <div className="flex items-center gap-1.5 text-xs text-[#6B584C] font-nunito">
                     <Feather className="w-3 h-3 text-[#E8AF30]" />
                     <span>Penned by</span>
-                    <Link
-                      href={`/authors/${item.author.slug}`}
-                      className="font-semibold text-[#3B3028] hover:text-[#E8AF30] underline-offset-2 hover:underline"
-                    >
-                      {item.author.name}
-                    </Link>
+                    {item.isAnonymous || !item.author.slug ? (
+                      <span className="font-semibold text-[#3B3028]">Anonymous</span>
+                    ) : (
+                      <Link
+                        href={`/authors/${item.author.slug}`}
+                        className="font-semibold text-[#3B3028] hover:text-[#E8AF30] underline-offset-2 hover:underline"
+                      >
+                        {item.author.name}
+                      </Link>
+                    )}
                   </div>
                 )}
 

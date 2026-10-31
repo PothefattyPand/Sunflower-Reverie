@@ -6,7 +6,7 @@ import { Feather, Sparkles } from "lucide-react";
 export const metadata = {
   title: "Letters & Other Words | Writings | Sunflower Reverie",
   description:
-    "An open repository of short stories, contemplative memoirs, letters, and creative prose by our two co-curators.",
+    "An open repository of short stories, contemplative memoirs, letters, and creative prose from Sunflower Reverie.",
 };
 
 export default async function WritingsPage() {
@@ -37,7 +37,7 @@ export default async function WritingsPage() {
           <div className="pt-2">
             <span className="inline-flex items-center gap-1.5 text-xs text-[#6B584C] bg-[#FFF3D9]/70 px-3 py-1 rounded-full border border-[#EADBCE] font-nunito">
               <Sparkles className="w-3 h-3 text-[#E8AF30]" />
-              Two Authors • Filterable by Author &amp; Genre
+              Literary Archive • Filterable by Topic &amp; Genre
             </span>
           </div>
         </header>

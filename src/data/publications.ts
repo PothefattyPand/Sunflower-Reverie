@@ -24,7 +24,8 @@ function mapSupabaseToAuthor(row: any): AuthorProfile {
     id: row.id,
     name: row.display_name || "Author",
     slug: row.slug || "author",
-    role: row.role || "Co-Curator & Author",
+    isPublicAuthor: Boolean(row.is_public_author),
+    role: row.role || "Curator & Author",
     shortBio: row.short_bio,
     fullBio: row.full_bio,
     quote: row.quote,
@@ -37,6 +38,23 @@ function mapSupabaseToAuthor(row: any): AuthorProfile {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapSupabaseToPublication(row: any): Publication {
   const profile = row.profiles || {};
+  // Check anonymity conditions:
+  // 1. Publication is explicitly marked anonymous (is_anonymous = true)
+  // 2. OR the author is hidden from public view (is_public_author !== true)
+  // 3. OR the author is Mahi (Mahi is strictly the hidden author)
+  // 4. OR profile is absent or unconfigured
+  const isMahi =
+    row.author_id === "76aaf5a8-7029-45dc-a7c7-ad4f25255be6" ||
+    profile.slug === "mahi" ||
+    profile.display_name?.toLowerCase() === "mahi";
+
+  const isAnonymous = Boolean(
+    row.is_anonymous ||
+    profile.is_public_author !== true ||
+    isMahi ||
+    !profile.display_name
+  );
+
   const isPoetry = row.category === "poetry";
   const bodyText = row.body || "";
   const paragraphs = bodyText.split(/\n\s*\n/).filter(Boolean);
@@ -53,13 +71,21 @@ function mapSupabaseToPublication(row: any): Publication {
     writingSubtype: row.writing_subtype || undefined,
     title: row.title,
     subtitle: row.subtitle || undefined,
-    author: {
-      id: profile.id || row.author_id,
-      name: profile.display_name || "Author",
-      slug: profile.slug || "author",
-      role: profile.role,
-      pictureUrl: profile.avatar_url,
-    },
+    author: isAnonymous
+      ? {
+          id: "anonymous", // Prevent exposing real account UUID in public author object
+          name: "Anonymous",
+          slug: "", // Empty slug ensures no identifiable link to author profile
+          role: "Contributing Author",
+          pictureUrl: undefined,
+        }
+      : {
+          id: profile.id,
+          name: profile.display_name || "Author",
+          slug: profile.slug || "author",
+          role: profile.role,
+          pictureUrl: profile.avatar_url,
+        },
     date,
     isoDate,
     excerpt: row.excerpt || "",
@@ -77,6 +103,7 @@ function mapSupabaseToPublication(row: any): Publication {
     seoTitle: row.title,
     seoDescription: row.excerpt,
     isSampleContent: false,
+    isAnonymous,
   };
 }
 
@@ -164,28 +191,63 @@ export async function fetchPublicationBySlug(
 }
 
 export async function fetchPublicationsByAuthor(authorSlug: string): Promise<Publication[]> {
+  // Mahi's public author folio is disabled; never return any publications under Mahi's slug
+  if (authorSlug.toLowerCase() === "mahi") {
+    return [];
+  }
   if (isSupabaseConfigured) {
     try {
       const supabase = getPublicSupabase();
       if (supabase) {
-        const { data: profile, error: profileError } = await supabase
+        let profileResult = await supabase
           .from("profiles")
-          .select("id")
+          .select("id, is_public_author")
           .eq("slug", authorSlug)
+          .eq("is_public_author", true)
+          .neq("slug", "mahi")
+          .neq("id", "76aaf5a8-7029-45dc-a7c7-ad4f25255be6")
           .maybeSingle();
 
-        if (profile?.id) {
-          const { data, error } = await supabase
+        if (profileResult.error && profileResult.error.code === "42703") {
+          profileResult = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("slug", authorSlug)
+            .neq("slug", "mahi")
+            .neq("id", "76aaf5a8-7029-45dc-a7c7-ad4f25255be6")
+            .maybeSingle();
+        }
+
+        const profile = profileResult.data;
+        const profileError = profileResult.error;
+
+        if (
+          profile?.id &&
+          profile.id !== "76aaf5a8-7029-45dc-a7c7-ad4f25255be6" &&
+          (profile as { is_public_author?: boolean }).is_public_author === true
+        ) {
+          let pubResult = await supabase
             .from("publications")
             .select("*, profiles(*)")
             .eq("author_id", profile.id)
             .eq("status", "published")
+            .eq("is_anonymous", false)
             .order("published_at", { ascending: false });
-          if (!error && data) {
-            return data.map(mapSupabaseToPublication);
+
+          if (pubResult.error && pubResult.error.code === "42703") {
+            pubResult = await supabase
+              .from("publications")
+              .select("*, profiles(*)")
+              .eq("author_id", profile.id)
+              .eq("status", "published")
+              .order("published_at", { ascending: false });
           }
-          if (error) {
-            console.error(`[Supabase] Error fetching publications for author '${authorSlug}':`, error);
+
+          if (!pubResult.error && pubResult.data) {
+            return pubResult.data.map(mapSupabaseToPublication);
+          }
+          if (pubResult.error) {
+            console.error(`[Supabase] Error fetching publications for author '${authorSlug}':`, pubResult.error);
           }
         } else if (profileError) {
           console.error(`[Supabase] Error finding profile for author '${authorSlug}':`, profileError);
@@ -304,12 +366,36 @@ export async function fetchAllAuthors(): Promise<AuthorProfile[]> {
     try {
       const supabase = getPublicSupabase();
       if (supabase) {
-        const { data, error } = await supabase
+        let { data, error } = await supabase
           .from("profiles")
           .select("*")
+          .eq("is_public_author", true)
+          .neq("slug", "mahi")
+          .neq("id", "76aaf5a8-7029-45dc-a7c7-ad4f25255be6")
           .order("created_at", { ascending: true });
+
+        // Backward compatibility if migration column is not yet applied
+        if (error && error.code === "42703") {
+          const fallback = await supabase
+            .from("profiles")
+            .select("*")
+            .neq("slug", "mahi")
+            .neq("id", "76aaf5a8-7029-45dc-a7c7-ad4f25255be6")
+            .order("created_at", { ascending: true });
+          data = fallback.data;
+          error = fallback.error;
+        }
+
         if (!error && data) {
-          return data.map(mapSupabaseToAuthor);
+          // Strictly require is_public_author === true and never Mahi
+          return data
+            .filter(
+              (r) =>
+                r.is_public_author === true &&
+                r.slug !== "mahi" &&
+                r.id !== "76aaf5a8-7029-45dc-a7c7-ad4f25255be6"
+            )
+            .map(mapSupabaseToAuthor);
         }
         if (error) {
           console.error("[Supabase] Error fetching all authors:", error);
@@ -323,6 +409,10 @@ export async function fetchAllAuthors(): Promise<AuthorProfile[]> {
 }
 
 export async function fetchAuthorBySlug(slug: string): Promise<AuthorProfile | undefined> {
+  // Mahi is strictly hidden; block any lookup of Mahi's profile
+  if (slug.toLowerCase() === "mahi") {
+    return undefined;
+  }
   if (isSupabaseConfigured) {
     try {
       const supabase = getPublicSupabase();
@@ -331,8 +421,22 @@ export async function fetchAuthorBySlug(slug: string): Promise<AuthorProfile | u
           .from("profiles")
           .select("*")
           .eq("slug", slug)
+          .eq("is_public_author", true)
+          .neq("id", "76aaf5a8-7029-45dc-a7c7-ad4f25255be6")
           .maybeSingle();
-        if (!error && data) {
+
+        // Backward compatibility if migration column is not yet applied
+        if (error && error.code === "42703") {
+          return undefined;
+        }
+
+        if (
+          !error &&
+          data &&
+          data.is_public_author === true &&
+          data.slug !== "mahi" &&
+          data.id !== "76aaf5a8-7029-45dc-a7c7-ad4f25255be6"
+        ) {
           return mapSupabaseToAuthor(data);
         }
         if (error) {
@@ -353,9 +457,22 @@ export async function fetchAllAuthorSlugs(): Promise<string[]> {
       if (supabase) {
         const { data, error } = await supabase
           .from("profiles")
-          .select("slug");
-        if (!error && data) {
-          return data.map((r: { slug: string }) => r.slug);
+          .select("slug, is_public_author")
+          .eq("is_public_author", true)
+          .neq("slug", "mahi")
+          .neq("id", "76aaf5a8-7029-45dc-a7c7-ad4f25255be6");
+
+        if (error && error.code === "42703") {
+          return [];
+        }
+
+        if (!error && data && data.length > 0) {
+          return data
+            .filter(
+              (r: { slug: string; is_public_author?: boolean }) =>
+                r.is_public_author === true && r.slug !== "mahi"
+            )
+            .map((r: { slug: string }) => r.slug);
         }
         if (error) {
           console.error("[Supabase] Error fetching author slugs:", error);

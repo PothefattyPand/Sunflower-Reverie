@@ -27,7 +27,7 @@ export default async function HomePage() {
         welcomeMessage={settings?.welcomeMessage}
       />
 
-      {/* SECTION 1: Meet Our Two Authors */}
+      {/* SECTION 1: Meet Our Author */}
       <AuthorIntroduction authors={authors} />
 
       {/* SECTION 2: Featured Writings */}

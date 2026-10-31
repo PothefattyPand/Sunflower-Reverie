@@ -6,7 +6,7 @@ import { Sparkles, Sun } from "lucide-react";
 export const metadata = {
   title: "Thoughts Beneath the Sun | Blogs | Sunflower Reverie",
   description:
-    "Reflections on literary craft, mindful living, and quiet morning insights from the desk of our two authors.",
+    "Reflections on literary craft, mindful living, and quiet morning insights from Sunflower Reverie.",
 };
 
 export default async function BlogsPage() {
@@ -37,7 +37,7 @@ export default async function BlogsPage() {
           <div className="pt-2">
             <span className="inline-flex items-center gap-1.5 text-xs text-[#6B584C] bg-[#FFF3D9]/70 px-3 py-1 rounded-full border border-[#EADBCE] font-nunito">
               <Sparkles className="w-3 h-3 text-[#E8AF30]" />
-              Two-Author Literary Sanctuary • Sunflower Reverie
+              Literary Sanctuary • Sunflower Reverie
             </span>
           </div>
         </header>

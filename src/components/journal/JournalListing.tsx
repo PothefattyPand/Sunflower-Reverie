@@ -161,12 +161,16 @@ export function JournalListing({ initialPublications, authors }: JournalListingP
                   <div className="flex items-center gap-1.5 text-xs text-[#6B584C] font-nunito">
                     <Feather className="w-3 h-3 text-[#E8AF30]" />
                     <span>Penned by</span>
-                    <Link
-                      href={`/authors/${entry.author.slug}`}
-                      className="font-semibold text-[#3B3028] hover:text-[#E8AF30] underline-offset-2 hover:underline"
-                    >
-                      {entry.author.name}
-                    </Link>
+                    {entry.isAnonymous || !entry.author.slug ? (
+                      <span className="font-semibold text-[#3B3028]">Anonymous</span>
+                    ) : (
+                      <Link
+                        href={`/authors/${entry.author.slug}`}
+                        className="font-semibold text-[#3B3028] hover:text-[#E8AF30] underline-offset-2 hover:underline"
+                      >
+                        {entry.author.name}
+                      </Link>
+                    )}
                   </div>
                 )}
 

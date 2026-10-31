@@ -75,7 +75,7 @@ export function BlogListing({ initialPublications, authors }: BlogListingProps) 
           No stories have bloomed here just yet.
         </h2>
         <p className="font-nunito text-base text-[#6B584C] leading-relaxed">
-          The co-curators are tending words at the writing desk; check back soon as fresh reflections bloom beneath the open sky.
+          We are tending words at the writing desk; check back soon as fresh reflections bloom beneath the open sky.
         </p>
       </div>
     );
@@ -220,12 +220,16 @@ export function BlogListing({ initialPublications, authors }: BlogListingProps) 
                   <div className="flex items-center gap-1.5 text-xs text-[#6B584C] font-nunito">
                     <Feather className="w-3 h-3 text-[#E8AF30]" />
                     <span>Penned by</span>
-                    <Link
-                      href={`/authors/${post.author.slug}`}
-                      className="font-semibold text-[#3B3028] hover:text-[#E8AF30] underline-offset-2 hover:underline"
-                    >
-                      {post.author.name}
-                    </Link>
+                    {post.isAnonymous || !post.author.slug ? (
+                      <span className="font-semibold text-[#3B3028]">Anonymous</span>
+                    ) : (
+                      <Link
+                        href={`/authors/${post.author.slug}`}
+                        className="font-semibold text-[#3B3028] hover:text-[#E8AF30] underline-offset-2 hover:underline"
+                      >
+                        {post.author.name}
+                      </Link>
+                    )}
                   </div>
                 )}
 

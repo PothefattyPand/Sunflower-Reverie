@@ -6,7 +6,7 @@ import { fetchPublicationsByCategory, fetchAllAuthors } from "@/data/publication
 export const metadata = {
   title: "Pages of Reflection | The Journal | Sunflower Reverie",
   description:
-    "Chronological field notes, morning reflections, and contemplative moments selected for public reading by our two diarists.",
+    "Chronological field notes, morning reflections, and contemplative moments selected for public reading from Sunflower Reverie.",
 };
 
 export default async function JournalPage() {
@@ -37,7 +37,7 @@ export default async function JournalPage() {
           <div className="pt-2">
             <span className="inline-flex items-center gap-1.5 text-xs text-[#6B584C] bg-[#FFF3D9]/70 px-3 py-1 rounded-full border border-[#EADBCE] font-nunito">
               <Sparkles className="w-3 h-3 text-[#E8AF30]" />
-              Two Authors • Chronologically Ordered Field Notes
+              Field Notes &amp; Morning Reflections
             </span>
           </div>
         </header>

@@ -45,6 +45,7 @@ export interface Publication {
   seoTitle?: string;
   seoDescription?: string;
   isSampleContent: boolean;
+  isAnonymous?: boolean;
 }
 
 export interface AuthorSocialLink {
@@ -56,6 +57,7 @@ export interface AuthorProfile {
   id: string;
   name: string;
   slug: string;
+  isPublicAuthor?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   picture?: any;
   pictureUrl?: string;

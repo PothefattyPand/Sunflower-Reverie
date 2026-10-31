@@ -36,6 +36,7 @@ interface PublicationData {
   tags?: string[] | null;
   status: "draft" | "published";
   reading_time?: string | null;
+  is_anonymous?: boolean;
 }
 
 interface WritingEditorProps {
@@ -60,6 +61,7 @@ export function WritingEditor({ mode, initialData }: WritingEditorProps) {
   const [coverImage, setCoverImage] = useState(initialData?.cover_image || "");
   const [tags, setTags] = useState(initialData?.tags?.join(", ") || "");
   const [status, setStatus] = useState<"draft" | "published">(initialData?.status || "draft");
+  const [isAnonymous, setIsAnonymous] = useState(Boolean(initialData?.is_anonymous));
 
   const bodyTextareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -248,6 +250,7 @@ export function WritingEditor({ mode, initialData }: WritingEditorProps) {
       formData.append("coverImage", coverImage);
       formData.append("tags", tags);
       formData.append("status", status);
+      formData.append("isAnonymous", String(isAnonymous));
 
       const res = await savePublicationAction(null, formData);
       if (res.error) {
@@ -498,6 +501,27 @@ export function WritingEditor({ mode, initialData }: WritingEditorProps) {
                   </span>
                   <span className="text-xs font-nunito text-[#6B584C] block">
                     Freely readable by all visitors
+                  </span>
+                </div>
+              </label>
+            </div>
+
+            {/* Anonymous Publishing Toggle */}
+            <div className="pt-3 border-t border-[#EADBCE]/80">
+              <label className="flex items-start gap-3 p-3 rounded-xl border border-[#EADBCE] bg-[#FFF9EC] cursor-pointer hover:border-[#E8AF30] transition-colors">
+                <input
+                  type="checkbox"
+                  id="is_anonymous"
+                  checked={isAnonymous}
+                  onChange={(e) => setIsAnonymous(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-[#EADBCE] text-[#E8AF30] focus:ring-[#E8AF30] cursor-pointer"
+                />
+                <div className="space-y-0.5">
+                  <span className="font-patrick text-base font-bold text-[#3B3028] block">
+                    Publish Anonymously
+                  </span>
+                  <span className="text-xs font-nunito text-[#6B584C] block leading-relaxed">
+                    Public readers will see &ldquo;By Anonymous&rdquo; with no link to your author profile. Your private ownership remains securely on your desk.
                   </span>
                 </div>
               </label>

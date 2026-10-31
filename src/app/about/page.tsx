@@ -10,16 +10,15 @@ import {
   Mail,
   Sparkles,
   Sun,
-  SunMedium,
 } from "lucide-react";
 import { Container } from "@/components/common/Container";
 import { BotanicalDivider } from "@/components/reading/BotanicalDivider";
 import { fetchAllAuthors, fetchSiteSettings } from "@/data/publications";
 
 export const metadata = {
-  title: "About the Authors & Sanctuary | Sunflower Reverie",
+  title: "About the Author & Sanctuary | Sunflower Reverie",
   description:
-    "Meet the two authors behind Sunflower Reverie—an intimate literary sanctuary for poetry, contemplative prose, and unhurried thoughts.",
+    "Discover Sunflower Reverie—an intimate literary sanctuary for poetry, contemplative prose, and unhurried thoughts.",
 };
 
 export default async function AboutPage() {
@@ -28,6 +27,7 @@ export default async function AboutPage() {
     fetchSiteSettings(),
   ]);
 
+  const author = authors.length > 0 ? authors[0] : null;
   const contactEmail = settings?.contactEmail || "letters@sunflowerreverie.com";
 
   return (
@@ -48,125 +48,127 @@ export default async function AboutPage() {
         <section className="text-center space-y-6 mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#FFF3D9] border border-[#EADBCE] text-xs font-patrick uppercase tracking-widest text-[#718B55]">
             <Sun className="w-3.5 h-3.5 text-[#E8AF30]" />
-            <span>Two-Author Literary Sanctuary</span>
+            <span>
+              {author ? "Sanctuary Curator & Hearth" : "Literary Sanctuary & Hearth"}
+            </span>
           </div>
 
           <h1 className="font-caveat text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tight text-[#3B3028] leading-[1.05]">
-            About Our Authors
+            {author ? "About Our Author" : "About Sunflower Reverie"}
           </h1>
 
           <p className="font-kalam text-xl sm:text-2xl text-[#6B584C] max-w-2xl mx-auto">
-            &ldquo;Two pens, two unhurried cadences, and one open garden where words turn toward the light.&rdquo;
+            &ldquo;One quiet garden where words turn toward the light, unhurried and free.&rdquo;
           </p>
 
-          {/* Balanced Two-Author Cards */}
-          <div className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-            {authors.map((author, idx) => {
-              const hasPortrait = Boolean(author.pictureUrl);
-              return (
-                <div
-                  key={author.id || author.slug || idx}
-                  className="rounded-3xl border-2 border-[#EADBCE] bg-[#FFF3D9]/90 hover:bg-[#FFF3D9] p-8 shadow-xs flex flex-col justify-between transition-all duration-300 hover:border-[#E8AF30]"
-                >
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between pb-3 border-b border-[#EADBCE]">
-                      <span className="font-patrick text-xs uppercase tracking-wider text-[#718B55] flex items-center gap-1.5">
-                        <Feather className="w-3.5 h-3.5 text-[#E8AF30]" />
-                        Co-Curator {idx + 1}
-                      </span>
-                      <span className="text-xs font-nunito italic text-[#6B584C]">
-                        Sunflower Reverie
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <div className="relative w-20 h-20 rounded-full border-2 border-[#E8AF30] bg-[#FFF9EC] flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
-                        {hasPortrait && author.pictureUrl ? (
-                          <Image
-                            src={author.pictureUrl}
-                            alt={author.name}
-                            width={80}
-                            height={80}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <Feather className="w-9 h-9 text-[#3B3028]/80 stroke-[1.25]" />
-                        )}
-                      </div>
-
-                      <div>
-                        <h2 className="font-patrick text-2xl sm:text-3xl font-bold text-[#3B3028]">
-                          <Link href={`/authors/${author.slug}`}>
-                            {author.name}
-                          </Link>
-                        </h2>
-                        <p className="font-nunito text-xs sm:text-sm text-[#718B55] font-semibold">
-                          {author.role}
-                        </p>
-                      </div>
-                    </div>
-
-                    {author.quote && (
-                      <p className="font-kalam text-sm text-[#6B584C] italic border-l-2 border-[#E8AF30] pl-3 py-0.5">
-                        &ldquo;{author.quote}&rdquo;
-                      </p>
-                    )}
-
-                    <p className="font-nunito text-sm sm:text-base text-[#3B3028]/90 leading-relaxed">
-                      {author.shortBio}
-                    </p>
-                  </div>
-
-                  <div className="pt-6 mt-6 border-t border-[#EADBCE]/80">
-                    <Link
-                      href={`/authors/${author.slug}`}
-                      className="inline-flex items-center justify-center gap-2 w-full px-5 py-2.5 rounded-full bg-[#FFF9EC] hover:bg-[#F4C542]/20 border border-[#EADBCE] hover:border-[#E8AF30] font-patrick text-base font-bold text-[#3B3028] transition-colors group shadow-xs"
-                    >
-                      <span>Explore {author.name}&apos;s Folio</span>
-                      <ArrowRight className="w-4 h-4 text-[#E8AF30] group-hover:translate-x-1 transition-transform" />
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
-
-            {authors.length < 2 && (
-              <div className="relative flex flex-col justify-between rounded-3xl border-2 border-dashed border-[#EADBCE] bg-[#FFF3D9]/40 p-8 shadow-xs">
-                <div>
-                  <div className="flex items-center justify-between text-[#718B55] mb-6 pb-3 border-b border-[#EADBCE]/60">
-                    <span className="font-patrick text-xs uppercase tracking-widest text-[#718B55] flex items-center gap-1.5 font-bold">
-                      <SunMedium className="w-3.5 h-3.5 text-[#E8AF30]" />
-                      The Second Writing Desk
+          {/* Author Card or Generic Sanctuary Card */}
+          <div className="pt-6 max-w-xl mx-auto text-left">
+            {author ? (
+              <div className="rounded-3xl border-2 border-[#EADBCE] bg-[#FFF3D9]/90 hover:bg-[#FFF3D9] p-8 sm:p-10 shadow-xs flex flex-col justify-between transition-all duration-300 hover:border-[#E8AF30]">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-[#EADBCE]">
+                    <span className="font-patrick text-xs uppercase tracking-wider text-[#718B55] flex items-center gap-1.5 font-bold">
+                      <Feather className="w-3.5 h-3.5 text-[#E8AF30]" />
+                      Sanctuary Curator
                     </span>
                     <span className="text-xs font-nunito italic text-[#6B584C]">
-                      Reserved Folio
+                      Sunflower Reverie
                     </span>
                   </div>
 
-                  <div className="text-center space-y-4 mb-5">
-                    <div className="mx-auto w-24 h-24 rounded-full border-2 border-dashed border-[#E8AF30]/70 bg-[#FFF9EC] flex items-center justify-center shadow-inner">
-                      <Feather className="w-10 h-10 text-[#6B584C]/50 stroke-[1.5]" />
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-20 h-20 rounded-full border-2 border-[#E8AF30] bg-[#FFF9EC] flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
+                      {author.pictureUrl ? (
+                        <Image
+                          src={author.pictureUrl}
+                          alt={author.name}
+                          width={80}
+                          height={80}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Feather className="w-9 h-9 text-[#3B3028]/80 stroke-[1.25]" />
+                      )}
                     </div>
 
                     <div>
-                      <h3 className="font-patrick text-2xl sm:text-3xl font-bold text-[#6B584C]">
-                        The Second Desk
-                      </h3>
-                      <p className="text-xs sm:text-sm font-nunito text-[#718B55] mt-1 font-semibold">
-                        Reserved for Co-Curator
+                      <h2 className="font-patrick text-2xl sm:text-3xl font-bold text-[#3B3028]">
+                        <Link href={`/authors/${author.slug}`}>
+                          {author.name}
+                        </Link>
+                      </h2>
+                      <p className="font-nunito text-xs sm:text-sm text-[#718B55] font-semibold">
+                        {author.role || "Curator & Author"}
                       </p>
                     </div>
                   </div>
 
-                  <p className="font-nunito text-sm text-[#6B584C] leading-relaxed text-center mb-6 max-w-sm mx-auto">
-                    Sunflower Reverie is crafted for two authors. This desk is quietly awaiting our second co-curator to arrive beneath the afternoon sun.
+                  {author.quote && (
+                    <p className="font-kalam text-sm text-[#6B584C] italic border-l-2 border-[#E8AF30] pl-3 py-0.5">
+                      &ldquo;{author.quote}&rdquo;
+                    </p>
+                  )}
+
+                  <p className="font-nunito text-sm sm:text-base text-[#3B3028]/90 leading-relaxed">
+                    {author.shortBio}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-[#EADBCE]/60 text-center">
-                  <p className="font-kalam text-sm text-[#6B584C] italic">
-                    &ldquo;Every garden has a second seat prepared for the afternoon light.&rdquo;
+                <div className="pt-6 mt-6 border-t border-[#EADBCE]/80">
+                  <Link
+                    href={`/authors/${author.slug}`}
+                    className="inline-flex items-center justify-center gap-2 w-full px-5 py-2.5 rounded-full bg-[#FFF9EC] hover:bg-[#F4C542]/20 border border-[#EADBCE] hover:border-[#E8AF30] font-patrick text-base font-bold text-[#3B3028] transition-colors group shadow-xs"
+                  >
+                    <span>Explore {author.name}&apos;s Folio</span>
+                    <ArrowRight className="w-4 h-4 text-[#E8AF30] group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-3xl border-2 border-[#EADBCE] bg-[#FFF3D9]/90 hover:bg-[#FFF3D9] p-8 sm:p-10 shadow-xs flex flex-col justify-between transition-all duration-300 hover:border-[#E8AF30]">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-[#EADBCE]">
+                    <span className="font-patrick text-xs uppercase tracking-wider text-[#718B55] flex items-center gap-1.5 font-bold">
+                      <Feather className="w-3.5 h-3.5 text-[#E8AF30]" />
+                      The Literary Desk
+                    </span>
+                    <span className="text-xs font-nunito italic text-[#6B584C]">
+                      Sunflower Reverie
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-20 h-20 rounded-full border-2 border-[#E8AF30] bg-[#FFF9EC] flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
+                      <Feather className="w-10 h-10 text-[#E8AF30] stroke-[1.25]" />
+                    </div>
+
+                    <div>
+                      <h2 className="font-patrick text-2xl sm:text-3xl font-bold text-[#3B3028]">
+                        The Unhurried Pen
+                      </h2>
+                      <p className="font-nunito text-xs sm:text-sm text-[#718B55] font-semibold">
+                        Contemplative Literary Sanctuary
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="font-kalam text-sm text-[#6B584C] italic border-l-2 border-[#E8AF30] pl-3 py-0.5">
+                    &ldquo;Writing is the art of giving quietude a voice.&rdquo;
                   </p>
+
+                  <p className="font-nunito text-sm sm:text-base text-[#3B3028]/90 leading-relaxed">
+                    Sunflower Reverie was established as an intimate, self-published archive for poetry, contemplative essays, and personal field notes. Free from algorithmic noise and commercial haste, it remains a tranquil perimeter where thoughts are given space to breathe, mature, and unfold.
+                  </p>
+                </div>
+
+                <div className="pt-6 mt-6 border-t border-[#EADBCE]/80">
+                  <Link
+                    href="/writings"
+                    className="inline-flex items-center justify-center gap-2 w-full px-5 py-2.5 rounded-full bg-[#FFF9EC] hover:bg-[#F4C542]/20 border border-[#EADBCE] hover:border-[#E8AF30] font-patrick text-base font-bold text-[#3B3028] transition-colors group shadow-xs"
+                  >
+                    <span>Explore the Complete Archive</span>
+                    <ArrowRight className="w-4 h-4 text-[#E8AF30] group-hover:translate-x-1 transition-transform" />
+                  </Link>
                 </div>
               </div>
             )}
@@ -188,14 +190,14 @@ export default async function AboutPage() {
 
           <div className="prose prose-stone max-w-none space-y-5 font-nunito text-lg sm:text-xl text-[#3B3028]/95 leading-relaxed">
             <p>
-              Sunflower Reverie is the personal, self-published archive of exactly two writers.
+              Sunflower Reverie is a personal, self-published literary archive.
               Here, there are no algorithmic feeds, no noisy comment sections, and no community
               submissions. Every sentence, verse, and journal entry gathered on these pages flows
-              from our shared writing cabinets, kept as a quiet testament to the enduring craft of language.
+              from our quiet writing desk, kept as a gentle testament to the enduring craft of language.
             </p>
             <p>
               Dedicated to the art of the unhurried sentence, we spend our mornings and afternoons
-              writing beside east and west-facing windows where sunflowers follow the daylight. With a deep
+              writing beside windows where sunflowers follow the daylight. With a deep
               love for gentle meter, pastoral beauty, and reflective memoir, our goal is simple:
               to offer readers a cheerful refuge in an otherwise frenetic world.
             </p>
@@ -220,12 +222,12 @@ export default async function AboutPage() {
               From Solitary Notebooks to an Open Sanctuary
             </h3>
             <p className="font-nunito text-base sm:text-lg text-[#3B3028]/90 leading-relaxed">
-              Like many who fall in love with literature, our separate journeys began in silence—scribbling verses
+              Like many who fall in love with literature, our journey began in silence—scribbling verses
               in battered cloth-bound notebooks, wandering through autumn orchards with volumes of poetry
               tucked into coat pockets, and learning to observe the world closely before attempting to describe it.
             </p>
             <p className="font-nunito text-base sm:text-lg text-[#3B3028]/90 leading-relaxed">
-              Sunflower Reverie brings these two paths together into a permanent, unhurried digital sanctuary
+              Sunflower Reverie brings this path into a permanent, unhurried digital sanctuary
               where thoughts can mature, bloom, and be read freely by anyone seeking quiet contemplation.
             </p>
           </div>
@@ -305,7 +307,7 @@ export default async function AboutPage() {
               Correspondence &amp; Dispatches
             </h3>
             <p className="font-nunito text-sm text-[#6B584C]">
-              Both authors welcome thoughtful letters, impressions, and quiet greetings.
+              We welcome thoughtful letters, impressions, and quiet greetings.
             </p>
           </div>
 

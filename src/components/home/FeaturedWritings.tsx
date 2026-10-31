@@ -35,7 +35,7 @@ export function FeaturedWritings({ featured }: FeaturedWritingsProps) {
             href: `/${catPath}/${p.slug}`,
             isSample: p.isSampleContent,
             authorName: p.author?.name || "Author",
-            authorSlug: p.author?.slug || "author-one",
+            authorSlug: (p.isAnonymous ? undefined : p.author?.slug) || undefined,
           };
         })
       : [];
@@ -55,7 +55,7 @@ export function FeaturedWritings({ featured }: FeaturedWritingsProps) {
               Featured Writings
             </h2>
             <p className="font-nunito text-base sm:text-lg text-[#6B584C]">
-              Carefully chosen reflections, poetic verses, and literary essays from both authors.
+              Carefully chosen reflections, poetic verses, and literary essays from our literary sanctuary.
             </p>
           </div>
 
@@ -78,7 +78,7 @@ export function FeaturedWritings({ featured }: FeaturedWritingsProps) {
               Our featured writings will appear here as they bloom.
             </h3>
             <p className="font-nunito text-base text-[#6B584C] leading-relaxed">
-              Curated highlights from our two writing desks will be showcased in this space as publications are shared.
+              Curated highlights from our writing desk will be showcased in this space as publications are shared.
             </p>
           </div>
         ) : (

@@ -71,7 +71,7 @@ export function PoetryListing({ initialPublications, authors }: PoetryListingPro
           The first verse is still waiting to bloom.
         </h2>
         <p className="font-nunito text-base text-[#6B584C] leading-relaxed">
-          The co-curators are tending meter and cadence at the desk; return soon to read poetry in bloom beneath the open sky.
+          We are tending meter and cadence at the desk; return soon to read poetry in bloom beneath the open sky.
         </p>
       </div>
     );
@@ -209,12 +209,16 @@ export function PoetryListing({ initialPublications, authors }: PoetryListingPro
                   <div className="flex items-center gap-1.5 text-xs text-[#6B584C] font-nunito mb-2">
                     <Feather className="w-3 h-3 text-[#E8AF30]" />
                     <span>Penned by</span>
-                    <Link
-                      href={`/authors/${poem.author.slug}`}
-                      className="font-semibold text-[#3B3028] hover:text-[#E8AF30] underline-offset-2 hover:underline"
-                    >
-                      {poem.author.name}
-                    </Link>
+                    {poem.isAnonymous || !poem.author.slug ? (
+                      <span className="font-semibold text-[#3B3028]">Anonymous</span>
+                    ) : (
+                      <Link
+                        href={`/authors/${poem.author.slug}`}
+                        className="font-semibold text-[#3B3028] hover:text-[#E8AF30] underline-offset-2 hover:underline"
+                      >
+                        {poem.author.name}
+                      </Link>
+                    )}
                   </div>
                 )}
 

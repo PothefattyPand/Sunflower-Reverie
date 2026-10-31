@@ -5,7 +5,6 @@ import Image from "next/image";
 import { ArrowLeft, Feather, Globe, Mail, Sparkles } from "lucide-react";
 import { Container } from "@/components/common/Container";
 import {
-  fetchAllAuthorSlugs,
   fetchAuthorBySlug,
   fetchPublicationsByAuthor,
 } from "@/data/publications";
@@ -14,11 +13,6 @@ import { getBaseUrl } from "@/lib/utils";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
-}
-
-export async function generateStaticParams() {
-  const slugs = await fetchAllAuthorSlugs();
-  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -106,7 +100,7 @@ export default async function AuthorProfilePage({ params }: PageProps) {
 
               <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF9EC] border border-[#EADBCE] text-xs font-patrick text-[#718B55] uppercase tracking-wider">
                 <Sparkles className="w-3.5 h-3.5 text-[#E8AF30]" />
-                <span>Sanctuary Co-Curator</span>
+                <span>Sanctuary Curator</span>
               </div>
             </div>
 
