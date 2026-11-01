@@ -643,8 +643,13 @@ function extractManagedStoragePath(
       return null;
     }
 
-    // Strictly enforce that the path begins with {authorId}/
-    if (!decodedPath.startsWith(`${authorId}/`)) {
+    // Strictly enforce that the path begins with {authorId}/ or permitted shared folders ('writings', 'public', 'covers')
+    // Final authorization and ownership verification is enforced at the database level by Supabase Storage RLS.
+    const firstSegment = decodedPath.split("/")[0];
+    const isAuthorFolder = firstSegment === authorId;
+    const isSharedFolder = ["writings", "public", "covers"].includes(firstSegment);
+
+    if (!isAuthorFolder && !isSharedFolder) {
       return null;
     }
 

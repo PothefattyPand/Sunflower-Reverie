@@ -205,7 +205,9 @@ test("Migration protects is_public_author from non-admin updates via trigger", (
 });
 
 test("Migration updates profiles RLS policy to allow public select only when is_public_author = TRUE", () => {
-  assert.match(migrationSql, /is_public_author\s*=\s*TRUE\s+OR\s+auth\.uid\(\)\s*=\s*id/i);
+  assert.match(migrationSql, /is_public_author\s*=\s*TRUE/i);
+  assert.match(migrationSql, /auth\.uid\(\)\s*=\s*id/i);
+  assert.match(migrationSql, /slug\s*<>\s*'mahi'/i);
 });
 
 test("Migration adds publications.is_anonymous column with DEFAULT FALSE", () => {

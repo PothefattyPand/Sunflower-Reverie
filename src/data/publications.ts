@@ -38,21 +38,29 @@ function mapSupabaseToAuthor(row: any): AuthorProfile {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapSupabaseToPublication(row: any): Publication {
   const profile = row.profiles || {};
+  const authorName = row.author_name || profile.display_name;
+  const authorSlug = row.author_slug || profile.slug;
+  const authorId = row.author_id || profile.id;
+
   // Check anonymity conditions:
   // 1. Publication is explicitly marked anonymous (is_anonymous = true)
   // 2. OR the author is hidden from public view (is_public_author !== true)
   // 3. OR the author is Mahi (Mahi is strictly the hidden author)
-  // 4. OR profile is absent or unconfigured
+  // 4. OR author is Anonymous / absent
   const isMahi =
     row.author_id === "76aaf5a8-7029-45dc-a7c7-ad4f25255be6" ||
+    profile.id === "76aaf5a8-7029-45dc-a7c7-ad4f25255be6" ||
+    authorSlug === "mahi" ||
     profile.slug === "mahi" ||
+    authorName?.toLowerCase() === "mahi" ||
     profile.display_name?.toLowerCase() === "mahi";
 
   const isAnonymous = Boolean(
     row.is_anonymous ||
-    profile.is_public_author !== true ||
+    (row.profiles ? profile.is_public_author !== true : (!authorName || authorName === "Anonymous")) ||
     isMahi ||
-    !profile.display_name
+    !authorName ||
+    authorName === "Anonymous"
   );
 
   const isPoetry = row.category === "poetry";
@@ -80,11 +88,11 @@ function mapSupabaseToPublication(row: any): Publication {
           pictureUrl: undefined,
         }
       : {
-          id: profile.id,
-          name: profile.display_name || "Author",
-          slug: profile.slug || "author",
-          role: profile.role,
-          pictureUrl: profile.avatar_url,
+          id: authorId,
+          name: authorName || "Author",
+          slug: authorSlug || "author",
+          role: row.author_role || profile.role,
+          pictureUrl: row.author_avatar_url || profile.avatar_url,
         },
     date,
     isoDate,
@@ -107,6 +115,12 @@ function mapSupabaseToPublication(row: any): Publication {
   };
 }
 
+function isViewPendingError(error: { code?: string } | null | undefined): boolean {
+  if (!error || !error.code) return false;
+  // PGRST205: View not in schema cache; 42P01: undefined table; 42501: permission denied; PGRST301: JWT/role denial
+  return ["PGRST205", "42P01", "42501", "PGRST301"].includes(error.code);
+}
+
 // ==========================================
 // Central Query Helper Functions (Supabase Backed)
 // Returns real published data or empty collections.
@@ -117,11 +131,22 @@ export async function fetchAllPublications(): Promise<Publication[]> {
     try {
       const supabase = getPublicSupabase();
       if (supabase) {
-        const { data, error } = await supabase
-          .from("publications")
-          .select("*, profiles(*)")
-          .eq("status", "published")
+        let { data, error } = await supabase
+          .from("public_publications")
+          .select("*")
           .order("published_at", { ascending: false });
+
+        // Graceful fallback for environments before migration is applied
+        if (isViewPendingError(error)) {
+          const fallback = await supabase
+            .from("publications")
+            .select("*, profiles(*)")
+            .eq("status", "published")
+            .order("published_at", { ascending: false });
+          data = fallback.data;
+          error = fallback.error;
+        }
+
         if (!error && data) {
           return data.map(mapSupabaseToPublication);
         }
@@ -141,12 +166,23 @@ export async function fetchPublicationsByCategory(category: Publication["type"])
     try {
       const supabase = getPublicSupabase();
       if (supabase) {
-        const { data, error } = await supabase
-          .from("publications")
-          .select("*, profiles(*)")
+        let { data, error } = await supabase
+          .from("public_publications")
+          .select("*")
           .eq("category", category)
-          .eq("status", "published")
           .order("published_at", { ascending: false });
+
+        if (isViewPendingError(error)) {
+          const fallback = await supabase
+            .from("publications")
+            .select("*, profiles(*)")
+            .eq("category", category)
+            .eq("status", "published")
+            .order("published_at", { ascending: false });
+          data = fallback.data;
+          error = fallback.error;
+        }
+
         if (!error && data) {
           return data.map(mapSupabaseToPublication);
         }
@@ -169,13 +205,25 @@ export async function fetchPublicationBySlug(
     try {
       const supabase = getPublicSupabase();
       if (supabase) {
-        const { data, error } = await supabase
-          .from("publications")
-          .select("*, profiles(*)")
+        let { data, error } = await supabase
+          .from("public_publications")
+          .select("*")
           .eq("category", category)
           .eq("slug", slug)
-          .eq("status", "published")
           .maybeSingle();
+
+        if (isViewPendingError(error)) {
+          const fallback = await supabase
+            .from("publications")
+            .select("*, profiles(*)")
+            .eq("category", category)
+            .eq("slug", slug)
+            .eq("status", "published")
+            .maybeSingle();
+          data = fallback.data;
+          error = fallback.error;
+        }
+
         if (!error && data) {
           return mapSupabaseToPublication(data);
         }
@@ -227,19 +275,19 @@ export async function fetchPublicationsByAuthor(authorSlug: string): Promise<Pub
           (profile as { is_public_author?: boolean }).is_public_author === true
         ) {
           let pubResult = await supabase
-            .from("publications")
-            .select("*, profiles(*)")
-            .eq("author_id", profile.id)
-            .eq("status", "published")
+            .from("public_publications")
+            .select("*")
+            .eq("author_slug", authorSlug)
             .eq("is_anonymous", false)
             .order("published_at", { ascending: false });
 
-          if (pubResult.error && pubResult.error.code === "42703") {
+          if (isViewPendingError(pubResult.error)) {
             pubResult = await supabase
               .from("publications")
               .select("*, profiles(*)")
               .eq("author_id", profile.id)
               .eq("status", "published")
+              .eq("is_anonymous", false)
               .order("published_at", { ascending: false });
           }
 
@@ -265,12 +313,23 @@ export async function fetchFeaturedPublications(): Promise<Publication[]> {
     try {
       const supabase = getPublicSupabase();
       if (supabase) {
-        const { data, error } = await supabase
-          .from("publications")
-          .select("*, profiles(*)")
-          .eq("status", "published")
+        let { data, error } = await supabase
+          .from("public_publications")
+          .select("*")
           .order("published_at", { ascending: false })
           .limit(3);
+
+        if (isViewPendingError(error)) {
+          const fallback = await supabase
+            .from("publications")
+            .select("*, profiles(*)")
+            .eq("status", "published")
+            .order("published_at", { ascending: false })
+            .limit(3);
+          data = fallback.data;
+          error = fallback.error;
+        }
+
         if (!error && data) {
           return data.map(mapSupabaseToPublication);
         }
@@ -290,12 +349,23 @@ export async function fetchLatestPublications(limit = 3): Promise<Publication[]>
     try {
       const supabase = getPublicSupabase();
       if (supabase) {
-        const { data, error } = await supabase
-          .from("publications")
-          .select("*, profiles(*)")
-          .eq("status", "published")
+        let { data, error } = await supabase
+          .from("public_publications")
+          .select("*")
           .order("published_at", { ascending: false })
           .limit(limit);
+
+        if (isViewPendingError(error)) {
+          const fallback = await supabase
+            .from("publications")
+            .select("*, profiles(*)")
+            .eq("status", "published")
+            .order("published_at", { ascending: false })
+            .limit(limit);
+          data = fallback.data;
+          error = fallback.error;
+        }
+
         if (!error && data) {
           return data.map(mapSupabaseToPublication);
         }
@@ -315,11 +385,21 @@ export async function fetchCategorySlugs(category: Publication["type"]): Promise
     try {
       const supabase = getPublicSupabase();
       if (supabase) {
-        const { data, error } = await supabase
-          .from("publications")
+        let { data, error } = await supabase
+          .from("public_publications")
           .select("slug")
-          .eq("category", category)
-          .eq("status", "published");
+          .eq("category", category);
+
+        if (isViewPendingError(error)) {
+          const fallback = await supabase
+            .from("publications")
+            .select("slug")
+            .eq("category", category)
+            .eq("status", "published");
+          data = fallback.data;
+          error = fallback.error;
+        }
+
         if (!error && data) {
           return data.map((r: { slug: string }) => r.slug);
         }
@@ -339,10 +419,19 @@ export async function fetchAllPublicSlugs(): Promise<{ slug: string; category: s
     try {
       const supabase = getPublicSupabase();
       if (supabase) {
-        const { data, error } = await supabase
-          .from("publications")
-          .select("slug, category, published_at")
-          .eq("status", "published");
+        let { data, error } = await supabase
+          .from("public_publications")
+          .select("slug, category, published_at");
+
+        if (isViewPendingError(error)) {
+          const fallback = await supabase
+            .from("publications")
+            .select("slug, category, published_at")
+            .eq("status", "published");
+          data = fallback.data;
+          error = fallback.error;
+        }
+
         if (!error && data) {
           return data.map((r: { slug: string; category: string; published_at?: string }) => ({
             slug: r.slug,
