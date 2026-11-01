@@ -183,7 +183,7 @@ export function AuthorPublicationsListing({
       {displayedPublications.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {displayedPublications.map((item) => {
-            const catPath = item.type === "writing" ? "writings" : item.type;
+            const catPath = item.type === "blog" ? "blogs" : item.type === "writing" ? "writings" : item.type;
             const href = `/${catPath}/${item.slug}`;
 
             return (

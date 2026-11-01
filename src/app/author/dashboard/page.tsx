@@ -361,7 +361,7 @@ async function AuthorDashboardContent() {
           {publishedPieces.length > 0 ? (
             <div className="divide-y divide-[#EADBCE] rounded-3xl bg-[#FFF3D9]/60 border border-[#EADBCE] p-6 sm:p-8 shadow-xs">
               {publishedPieces.map((piece) => {
-                const catPath = piece.category === "writing" ? "writings" : piece.category;
+                const catPath = piece.category === "blog" ? "blogs" : piece.category === "writing" ? "writings" : piece.category;
                 const publicHref = `/${catPath}/${piece.slug}`;
                 const displayDate = formatDisplayDate(piece.published_at || piece.created_at);
 

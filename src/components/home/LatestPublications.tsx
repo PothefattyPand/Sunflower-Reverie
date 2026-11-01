@@ -23,7 +23,7 @@ export function LatestPublications({ latest }: LatestPublicationsProps) {
   const items: DisplayItem[] =
     latest && latest.length > 0
       ? latest.map((p) => {
-          const catPath = p.type === "writing" ? "writings" : p.type;
+          const catPath = p.type === "blog" ? "blogs" : p.type === "writing" ? "writings" : p.type;
           return {
             id: p.id,
             title: p.title,

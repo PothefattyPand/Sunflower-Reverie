@@ -24,7 +24,7 @@ export function FeaturedWritings({ featured }: FeaturedWritingsProps) {
   const pieces: FeaturedPiece[] =
     featured && featured.length > 0
       ? featured.map((p) => {
-          const catPath = p.type === "writing" ? "writings" : p.type;
+          const catPath = p.type === "blog" ? "blogs" : p.type === "writing" ? "writings" : p.type;
           return {
             id: p.id,
             title: p.title,

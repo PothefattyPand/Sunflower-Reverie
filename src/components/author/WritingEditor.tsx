@@ -20,6 +20,8 @@ import {
   Trash2,
   X,
   Check,
+  Sun,
+  BookOpen,
 } from "lucide-react";
 import { savePublicationAction, uploadAssetAction } from "@/app/author/dashboard/actions";
 
@@ -39,6 +41,48 @@ interface PublicationData {
   is_anonymous?: boolean;
 }
 
+export const VALID_CATEGORIES = ["blog", "poetry", "journal", "writing"] as const;
+export type WritingCategory = (typeof VALID_CATEGORIES)[number];
+
+export interface CategoryOption {
+  value: WritingCategory;
+  label: string;
+  subtitle: string;
+  archivePath: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+export const CATEGORY_OPTIONS: CategoryOption[] = [
+  {
+    value: "blog",
+    label: "Blog",
+    subtitle: "Thoughts Beneath the Sun",
+    archivePath: "/blogs",
+    icon: Sun,
+  },
+  {
+    value: "poetry",
+    label: "Poetry",
+    subtitle: "Verses in Bloom",
+    archivePath: "/poetry",
+    icon: Feather,
+  },
+  {
+    value: "journal",
+    label: "Journal",
+    subtitle: "Pages of Reflection",
+    archivePath: "/journal",
+    icon: BookOpen,
+  },
+  {
+    value: "writing",
+    label: "Writings",
+    subtitle: "Letters & Other Words",
+    archivePath: "/writings",
+    icon: Sparkles,
+  },
+];
+
 interface WritingEditorProps {
   mode: "create" | "edit";
   initialData?: PublicationData;
@@ -50,11 +94,17 @@ export function WritingEditor({ mode, initialData }: WritingEditorProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Validate and sanitize initial category so existing publications always retain their category
+  const initialCategory: WritingCategory =
+    initialData?.category && (VALID_CATEGORIES as readonly string[]).includes(initialData.category)
+      ? (initialData.category as WritingCategory)
+      : "blog";
+
   // Form fields state
   const [title, setTitle] = useState(initialData?.title || "");
   const [subtitle, setSubtitle] = useState(initialData?.subtitle || "");
   const [slug, setSlug] = useState(initialData?.slug || "");
-  const [category, setCategory] = useState(initialData?.category || "blog");
+  const [category, setCategory] = useState<WritingCategory>(initialCategory);
   const [writingSubtype, setWritingSubtype] = useState(initialData?.writing_subtype || "essay");
   const [excerpt, setExcerpt] = useState(initialData?.excerpt || "");
   const [body, setBody] = useState(initialData?.body || "");
@@ -335,7 +385,7 @@ export function WritingEditor({ mode, initialData }: WritingEditorProps) {
 
           {/* Subtitle */}
           <div className="space-y-1.5">
-            <label htmlFor="subtitle" className="block text-xs font-patrick uppercase tracking-wider text-[#718B55]">
+            <label htmlFor="subtitle" className="block text-xs font-patrick uppercase tracking-wider text-[#718B55] font-bold">
               Subtitle / Epigraph (Optional)
             </label>
             <input
@@ -346,6 +396,109 @@ export function WritingEditor({ mode, initialData }: WritingEditorProps) {
               placeholder="e.g., Reflections on dawn shadows and the writing day"
               className="w-full px-4 py-2.5 rounded-xl bg-[#FFF3D9]/40 border border-[#EADBCE] font-kalam text-lg text-[#6B584C] placeholder-[#6B584C]/50 focus:outline-hidden focus:border-[#E8AF30] transition-colors"
             />
+          </div>
+
+          {/* Writing Category Selector (Prominent near top of editor, below title & subtitle) */}
+          <div className="space-y-3 p-5 sm:p-6 rounded-2xl bg-[#FFF3D9]/60 border border-[#EADBCE]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <div>
+                <label className="block text-xs font-patrick uppercase tracking-wider text-[#718B55] font-bold">
+                  Writing Category *
+                </label>
+                <p className="text-xs font-nunito text-[#6B584C] mt-0.5">
+                  Select which archive folio this piece belongs to:
+                </p>
+              </div>
+              <span className="text-xs font-patrick font-bold text-[#E8AF30]">
+                Preselected: {CATEGORY_OPTIONS.find((c) => c.value === category)?.label}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {CATEGORY_OPTIONS.map((opt) => {
+                const isSelected = category === opt.value;
+                const IconComponent = opt.icon;
+                return (
+                  <label
+                    key={opt.value}
+                    htmlFor={`category-${opt.value}`}
+                    className={`relative flex flex-col justify-between p-3.5 sm:p-4 rounded-2xl border-2 transition-all cursor-pointer text-left select-none ${
+                      isSelected
+                        ? "border-[#E8AF30] bg-[#FFF3D9] shadow-xs ring-1 ring-[#E8AF30]"
+                        : "border-[#EADBCE] bg-[#FFF9EC] hover:border-[#E8AF30]/60 hover:bg-[#FFF3D9]/30"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      id={`category-${opt.value}`}
+                      name="category_selection"
+                      value={opt.value}
+                      checked={isSelected}
+                      onChange={() => setCategory(opt.value)}
+                      className="sr-only"
+                    />
+
+                    <div className="flex items-center justify-between w-full mb-2">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                          isSelected
+                            ? "bg-[#E8AF30] text-[#3B3028]"
+                            : "bg-[#FFF3D9] text-[#718B55]"
+                        }`}
+                      >
+                        <IconComponent className="w-4 h-4" />
+                      </div>
+
+                      <div
+                        className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${
+                          isSelected
+                            ? "border-[#E8AF30] bg-[#E8AF30]"
+                            : "border-[#D0C2B4] bg-[#FFF9EC]"
+                        }`}
+                      >
+                        {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="font-patrick text-lg sm:text-xl font-bold text-[#3B3028] block leading-tight">
+                        {opt.label}
+                      </span>
+                      <span className="text-xs font-nunito text-[#6B584C] block mt-0.5 leading-snug">
+                        {opt.subtitle}
+                      </span>
+                      <span className="inline-block mt-2 px-2 py-0.5 rounded-full bg-[#FFF9EC] border border-[#EADBCE] text-[10px] font-mono text-[#718B55] font-semibold">
+                        {opt.archivePath}
+                      </span>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+
+            {/* Writing Subtype selector when 'writing' is chosen */}
+            {category === "writing" && (
+              <div className="p-3.5 rounded-xl bg-[#FFF9EC] border border-[#EADBCE] flex flex-col sm:flex-row sm:items-center gap-3">
+                <label htmlFor="writingSubtype" className="text-xs font-patrick uppercase tracking-wider text-[#718B55] font-bold whitespace-nowrap">
+                  Writing Subtype:
+                </label>
+                <select
+                  id="writingSubtype"
+                  value={writingSubtype}
+                  onChange={(e) => setWritingSubtype(e.target.value)}
+                  className="w-full sm:w-auto px-3.5 py-1.5 rounded-xl bg-[#FFF3D9]/60 border border-[#EADBCE] text-sm font-patrick font-bold text-[#3B3028] focus:outline-hidden focus:border-[#E8AF30]"
+                >
+                  <option value="essay">Essay</option>
+                  <option value="short-story">Short Story</option>
+                  <option value="letter">Epistolary Letter</option>
+                  <option value="reflection">Contemplative Reflection</option>
+                  <option value="creative-prose">Creative Prose</option>
+                </select>
+                <span className="text-xs font-nunito text-[#6B584C] italic">
+                  Categorizes this piece in the Letters &amp; Other Words archive
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Body Content with Formatting Toolbar */}
@@ -528,48 +681,33 @@ export function WritingEditor({ mode, initialData }: WritingEditorProps) {
             </div>
           </div>
 
-          {/* Folio Category */}
-          <div className="p-6 rounded-2xl bg-[#FFF3D9]/60 border border-[#EADBCE] space-y-4">
-            <span className="font-patrick text-sm font-bold uppercase tracking-wider text-[#718B55]">
-              Folio Category
+          {/* Active Archive Folio Routing Summary */}
+          <div className="p-5 rounded-2xl bg-[#FFF3D9]/60 border border-[#EADBCE] space-y-2">
+            <span className="font-patrick text-xs font-bold uppercase tracking-wider text-[#718B55] block">
+              Active Archive Folio
             </span>
-
-            <div className="space-y-2">
-              <label htmlFor="category" className="block text-xs font-nunito text-[#6B584C]">
-                Select which archive this piece belongs to:
-              </label>
-              <select
-                id="category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-[#FFF9EC] border border-[#EADBCE] text-sm font-patrick font-bold text-[#3B3028] focus:outline-hidden focus:border-[#E8AF30]"
-              >
-                <option value="blog">Blogs (Thoughts Beneath the Sun)</option>
-                <option value="poetry">Poetry (Verses in Bloom)</option>
-                <option value="journal">Journal (Pages of Reflection)</option>
-                <option value="writing">Writings (Letters &amp; Other Words)</option>
-              </select>
-            </div>
-
-            {category === "writing" && (
-              <div className="space-y-2 pt-2 border-t border-[#EADBCE]/70">
-                <label htmlFor="subtype" className="block text-xs font-nunito text-[#6B584C]">
-                  Writing Subtype:
-                </label>
-                <select
-                  id="subtype"
-                  value={writingSubtype}
-                  onChange={(e) => setWritingSubtype(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-[#FFF9EC] border border-[#EADBCE] text-sm font-patrick text-[#3B3028]"
-                >
-                  <option value="essay">Essay</option>
-                  <option value="short-story">Short Story</option>
-                  <option value="letter">Epistolary Letter</option>
-                  <option value="reflection">Contemplative Reflection</option>
-                  <option value="creative-prose">Creative Prose</option>
-                </select>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full bg-[#FFF9EC] border border-[#EADBCE] text-xs font-mono font-bold text-[#E8AF30]">
+                  {category === "blog" && "/blogs"}
+                  {category === "poetry" && "/poetry"}
+                  {category === "journal" && "/journal"}
+                  {category === "writing" && "/writings"}
+                </span>
+                <span className="text-sm font-patrick font-bold text-[#3B3028]">
+                  {category === "blog" && "Thoughts Beneath the Sun"}
+                  {category === "poetry" && "Verses in Bloom"}
+                  {category === "journal" && "Pages of Reflection"}
+                  {category === "writing" && "Letters & Other Words"}
+                </span>
               </div>
-            )}
+              <p className="text-xs font-nunito text-[#6B584C] leading-relaxed">
+                {category === "blog" && "Will be cataloged in the Blog folio archive."}
+                {category === "poetry" && "Will be cataloged in the Poetry folio with preserved stanza formatting."}
+                {category === "journal" && "Will be cataloged in the Journal chronicle."}
+                {category === "writing" && `Will be cataloged in the Literary Folio as ${writingSubtype}.`}
+              </p>
+            </div>
           </div>
 
           {/* Slug & Tags */}

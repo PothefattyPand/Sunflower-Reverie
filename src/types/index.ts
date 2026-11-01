@@ -9,6 +9,12 @@ export interface NavItem {
 
 export type PublicationType = "blog" | "poetry" | "journal" | "writing";
 
+export function getCategoryRoutePath(category: PublicationType | string): string {
+  if (category === "blog") return "blogs";
+  if (category === "writing") return "writings";
+  return category;
+}
+
 export type WritingSubtype = "essay" | "short-story" | "letter" | "reflection" | "creative-prose";
 
 export interface CoverImage {
