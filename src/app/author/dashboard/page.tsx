@@ -113,17 +113,10 @@ async function AuthorDashboardContent() {
               <p className="font-kalam text-lg sm:text-xl text-[#6B584C] leading-relaxed">
                 Welcome back, <span className="text-[#3B3028] font-bold">{authorName}</span>. Your personal manuscripts and seasonal reflections are gathered here beneath the quiet light.
               </p>
-              {profile?.is_public_author ? (
-                <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-[#FFF3D9] border border-[#EADBCE] text-xs font-patrick text-[#718B55] uppercase tracking-wider font-bold">
-                  <Sparkles className="w-3 h-3 text-[#E8AF30]" />
-                  Public Author
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-[#FFF3D9] border border-[#EADBCE] text-xs font-patrick text-[#6B584C] uppercase tracking-wider font-bold" title="Your identity is hidden from public pages; all your published pieces appear as 'By Anonymous'">
-                  <Feather className="w-3 h-3 text-[#E8AF30]" />
-                  Private Author (Anonymous Bylines)
-                </span>
-              )}
+              <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-[#FFF3D9] border border-[#EADBCE] text-xs font-patrick text-[#718B55] uppercase tracking-wider font-bold">
+                <Sparkles className="w-3 h-3 text-[#E8AF30]" />
+                Sanctuary Author
+              </span>
             </div>
           </div>
 
@@ -276,11 +269,6 @@ async function AuthorDashboardContent() {
                         <span className="uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#FFF9EC] border border-[#EADBCE] font-bold">
                           {piece.category}
                         </span>
-                        {piece.is_anonymous && (
-                          <span className="px-2 py-0.5 rounded-full bg-[#EADBCE]/70 text-[#3B3028] font-bold">
-                            Anonymous
-                          </span>
-                        )}
                       </div>
                       <span className="italic text-[#6B584C]">In Progress</span>
                     </div>
@@ -375,11 +363,6 @@ async function AuthorDashboardContent() {
                         <span className="uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-[#FFF9EC] border border-[#EADBCE] font-bold">
                           {piece.category}
                         </span>
-                        {piece.is_anonymous && (
-                          <span className="px-2 py-0.5 rounded-full bg-[#EADBCE]/70 text-[#3B3028] font-bold">
-                            Anonymous
-                          </span>
-                        )}
                         {displayDate && (
                           <span className="flex items-center gap-1 text-[#6B584C] font-nunito">
                             <Calendar className="w-3 h-3 text-[#E8AF30]" />

@@ -9,7 +9,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 export const metadata: Metadata = {
   title: "Reset Password | Author Portal | Sunflower Reverie",
-  description: "Set a new secret password for Sunflower Reverie co-curator accounts.",
+  description: "Set a new secret password for the Sunflower Reverie author account.",
   robots: {
     index: false,
     follow: false,

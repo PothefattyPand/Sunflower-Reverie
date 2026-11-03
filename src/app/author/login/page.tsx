@@ -5,7 +5,7 @@ import { LoginForm } from "@/components/author/LoginForm";
 
 export const metadata: Metadata = {
   title: "Author Portal | Sunflower Reverie",
-  description: "Private author gateway for the two co-curators of Sunflower Reverie.",
+  description: "Private author gateway for the authorized author of Sunflower Reverie.",
   robots: {
     index: false,
     follow: false,

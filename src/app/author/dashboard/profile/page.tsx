@@ -68,7 +68,7 @@ async function AuthorProfileContent() {
     id: user.id,
     display_name: user.email?.split("@")[0] || "Author",
     slug: user.email?.split("@")[0]?.toLowerCase().replace(/[^\w-]/g, "") || "author",
-    role: "Co-Curator & Author",
+    role: "Author & Curator",
     short_bio: "",
     full_bio: "",
     quote: "",

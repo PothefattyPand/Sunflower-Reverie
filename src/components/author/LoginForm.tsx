@@ -19,7 +19,7 @@ export function LoginForm() {
   let initialErrorMessage: string | null = null;
   if (urlError === "unauthorized") {
     initialErrorMessage =
-      "Access restricted. Your account is not on the two-author allowlist for Sunflower Reverie.";
+      "Access restricted. Only the authorized curator (nadvihasan107@gmail.com) has publishing access.";
   } else if (urlError === "not_configured") {
     initialErrorMessage =
       "Supabase backend configuration is pending. Please verify your environment variables.";
@@ -53,7 +53,7 @@ export function LoginForm() {
         </h1>
 
         <p className="font-kalam text-lg text-[#6B584C]">
-          &ldquo;Two pens, two unhurried voices, one quiet garden.&rdquo;
+          &ldquo;One pen, one unhurried voice, one quiet garden.&rdquo;
         </p>
       </div>
 
@@ -156,10 +156,10 @@ export function LoginForm() {
         <div className="mt-8 pt-5 border-t border-[#EADBCE]/80 text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 text-xs text-[#718B55] font-nunito font-semibold">
             <Sparkles className="w-3.5 h-3.5 text-[#E8AF30]" />
-            <span>Strict Two-Author Boundary</span>
+            <span>Single-Author Sanctuary</span>
           </div>
           <p className="font-nunito text-xs text-[#6B584C] leading-relaxed">
-            Public visitor registration is strictly disabled. Only the two verified co-curators have publishing credentials.
+            Public visitor registration is strictly disabled. Only the verified author has publishing credentials.
           </p>
         </div>
       </div>

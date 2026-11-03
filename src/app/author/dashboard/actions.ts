@@ -32,12 +32,12 @@ async function getAuthenticatedAuthor() {
 
   const { data: authorized, error: authError } = await supabase
     .from("authorized_authors")
-    .select("user_id")
+    .select("user_id, email")
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (authError || !authorized) {
-    throw new Error("Unauthorized author account.");
+  if (authError || !authorized || user.email?.toLowerCase() !== "nadvihasan107@gmail.com") {
+    throw new Error("Unauthorized author account. Only nadvihasan107@gmail.com is authorized.");
   }
 
   return { supabase, user };
@@ -79,7 +79,8 @@ export async function savePublicationAction(
     const coverImage = (formData.get("coverImage") as string)?.trim() || null;
     const tagsString = (formData.get("tags") as string)?.trim() || "";
     const status = (formData.get("status") as string) === "published" ? "published" : "draft";
-    const isAnonymous = (formData.get("isAnonymous") as string) === "true";
+    // Discontinued anonymous publishing in single-author system; retain false for DB compatibility
+    const isAnonymous = false;
 
     if (!title || !category || !excerpt || !body) {
       return { error: "Please provide a title, category, excerpt, and body text." };
@@ -361,7 +362,7 @@ export async function updateProfileAction(
 
     const displayName = (formData.get("displayName") as string)?.trim();
     const rawSlug = (formData.get("slug") as string)?.trim();
-    const role = (formData.get("role") as string)?.trim() || "Co-Curator & Author";
+    const role = (formData.get("role") as string)?.trim() || "Author & Curator";
     const shortBio = (formData.get("shortBio") as string)?.trim() || null;
     const fullBio = (formData.get("fullBio") as string)?.trim() || null;
     const quote = (formData.get("quote") as string)?.trim() || null;

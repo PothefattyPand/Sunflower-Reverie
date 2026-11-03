@@ -47,16 +47,16 @@ export async function loginAuthorAction(
   // Verify server-controlled authorization allowlist
   const { data: authorized, error: authCheckError } = await supabase
     .from("authorized_authors")
-    .select("user_id")
+    .select("user_id, email")
     .eq("user_id", data.user.id)
     .maybeSingle();
 
-  if (authCheckError || !authorized) {
+  if (authCheckError || !authorized || data.user.email?.toLowerCase() !== "nadvihasan107@gmail.com") {
     // Force sign out immediately if account is not allowlisted
     await supabase.auth.signOut();
     return {
       error:
-        "Access denied. This account is not one of the two authorized co-curators for Sunflower Reverie.",
+        "Access denied. Only the authorized curator (nadvihasan107@gmail.com) can access Sunflower Reverie.",
     };
   }
 
@@ -160,18 +160,18 @@ export async function resetPasswordAction(
     };
   }
 
-  // Enforce two-author allowlist: Only approved authors may update credentials
+  // Enforce single-author allowlist: Only approved author may update credentials
   const { data: authorized, error: authCheckError } = await supabase
     .from("authorized_authors")
-    .select("user_id")
+    .select("user_id, email")
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (authCheckError || !authorized) {
+  if (authCheckError || !authorized || user.email?.toLowerCase() !== "nadvihasan107@gmail.com") {
     await supabase.auth.signOut();
     return {
       error:
-        "Access denied. This account is not one of the two authorized co-curators for Sunflower Reverie.",
+        "Access denied. Only the authorized curator (nadvihasan107@gmail.com) can access Sunflower Reverie.",
     };
   }
 

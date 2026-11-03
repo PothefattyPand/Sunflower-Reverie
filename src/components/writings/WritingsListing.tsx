@@ -186,16 +186,12 @@ export function WritingsListing({ initialPublications, authors }: WritingsListin
                   <div className="flex items-center gap-1.5 text-xs text-[#6B584C] font-nunito">
                     <Feather className="w-3 h-3 text-[#E8AF30]" />
                     <span>Penned by</span>
-                    {item.isAnonymous || !item.author.slug ? (
-                      <span className="font-semibold text-[#3B3028]">Anonymous</span>
-                    ) : (
-                      <Link
-                        href={`/authors/${item.author.slug}`}
-                        className="font-semibold text-[#3B3028] hover:text-[#E8AF30] underline-offset-2 hover:underline"
-                      >
-                        {item.author.name}
-                      </Link>
-                    )}
+                    <Link
+                      href={`/authors/${item.author.slug || "nadvi"}`}
+                      className="font-semibold text-[#3B3028] hover:text-[#E8AF30] underline-offset-2 hover:underline"
+                    >
+                      {item.author.name || "Nadvi"}
+                    </Link>
                   </div>
                 )}
 
