@@ -49,7 +49,7 @@ export function ForgotPasswordForm() {
                 <span>Recovery Dispatch Sent</span>
               </div>
               <p className="leading-relaxed text-[#6B584C]">
-                If this email address belongs to one of our two authorized co-curators, a secure recovery link has been dispatched to your inbox.
+                If this email address belongs to our authorized author, a secure recovery link has been dispatched to your inbox.
               </p>
               <p className="text-xs text-[#6B584C]/80 leading-relaxed italic">
                 Please check your inbox (and spam folder if needed). The recovery link will grant you access to set a fresh secret password.

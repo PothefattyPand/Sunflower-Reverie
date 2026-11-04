@@ -181,20 +181,13 @@ export function PublicationLayout({
           {publication.author && (
             <div className="pt-2 flex items-center justify-center gap-2">
               <span className="text-sm font-nunito text-[#6B584C]">Penned by</span>
-              {publication.isAnonymous || !publication.author.slug ? (
-                <span className="inline-flex items-center gap-1.5 font-patrick text-lg font-bold text-[#3B3028]">
-                  <Feather className="w-4 h-4 text-[#E8AF30]" />
-                  <span>Anonymous</span>
-                </span>
-              ) : (
-                <Link
-                  href={`/authors/${publication.author.slug}`}
-                  className="inline-flex items-center gap-1.5 font-patrick text-lg font-bold text-[#3B3028] hover:text-[#E8AF30] underline-offset-4 hover:underline transition-colors"
-                >
-                  <Feather className="w-4 h-4 text-[#E8AF30]" />
-                  <span>{publication.author.name}</span>
-                </Link>
-              )}
+              <Link
+                href={`/authors/${publication.author.slug || "nadvi"}`}
+                className="inline-flex items-center gap-1.5 font-patrick text-lg font-bold text-[#3B3028] hover:text-[#E8AF30] underline-offset-4 hover:underline transition-colors"
+              >
+                <Feather className="w-4 h-4 text-[#E8AF30]" />
+                <span>{publication.author.name || "Nadvi"}</span>
+              </Link>
             </div>
           )}
 
@@ -267,7 +260,7 @@ export function PublicationLayout({
         )}
 
         {/* Author Byline Box */}
-        {publication.author && !publication.isAnonymous && publication.author.slug ? (
+        {publication.author && (
           <div className="my-12 p-6 sm:p-8 rounded-2xl bg-[#FFF3D9]/60 border border-[#EADBCE] flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
             <div className="relative w-16 h-16 rounded-full border-2 border-[#E8AF30] bg-[#FFF9EC] flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
               {publication.author.pictureUrl ? (
@@ -289,7 +282,7 @@ export function PublicationLayout({
                   About {publication.author.name}
                 </h3>
                 <Link
-                  href={`/authors/${publication.author.slug}`}
+                  href={`/authors/${publication.author.slug || "nadvi"}`}
                   className="font-patrick text-base font-bold text-[#E8AF30] hover:text-[#3B3028] transition-colors"
                 >
                   View Complete Folio &rarr;
@@ -300,18 +293,6 @@ export function PublicationLayout({
               </p>
               <p className="text-sm text-[#6B584C] font-nunito leading-relaxed">
                 Writing from the quiet perimeter of Sunflower Reverie, sharing unhurried observations, poetic verses, and personal journals beneath the open sky.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="my-12 p-6 rounded-2xl bg-[#FFF9EC]/60 border border-[#EADBCE] flex items-center gap-4 text-left">
-            <div className="w-12 h-12 rounded-full border border-[#E8AF30]/40 bg-[#FFF3D9] flex items-center justify-center shrink-0">
-              <Feather className="w-5 h-5 text-[#8C7A6B]" />
-            </div>
-            <div className="space-y-0.5">
-              <h4 className="font-patrick text-lg font-bold text-[#3B3028]">Penned Anonymously</h4>
-              <p className="text-xs text-[#6B584C] font-nunito">
-                Shared in quiet contemplation from within the sunflower meadow.
               </p>
             </div>
           </div>

@@ -136,12 +136,12 @@ export function AccountSettings({ userEmail }: AccountSettingsProps) {
               </span>
               <span className="inline-flex items-center gap-1 text-[11px] font-patrick text-emerald-700 mt-1">
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Verified Co-Curator</span>
+                <span>Verified Author</span>
               </span>
             </div>
 
             <p className="text-xs font-nunito text-[#6B584C] leading-relaxed">
-              This email is registered with Supabase Authentication and is linked to Author 1 on the sanctuary allowlist.
+              This email is registered with Supabase Authentication and is the authorized author for Sunflower Reverie.
             </p>
           </div>
 

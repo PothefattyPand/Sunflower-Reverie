@@ -73,7 +73,7 @@ export async function updateSession(request: NextRequest) {
       .maybeSingle();
 
     if (!authorized) {
-      // User is authenticated in Supabase, but NOT one of the 2 authorized authors!
+      // User is authenticated in Supabase, but NOT the authorized author!
       const url = request.nextUrl.clone();
       url.pathname = "/author/login";
       url.searchParams.set("error", "unauthorized");

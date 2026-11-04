@@ -1,74 +1,31 @@
 import { AuthorProfile, AuthorSummary, Publication } from '@/types';
 
 /**
- * Two Author Profiles for Sunflower Reverie
+ * Single Author Profile for Sunflower Reverie
  */
 export const MOCK_AUTHORS: AuthorProfile[] = [
   {
-    id: "author-1",
-    name: "Author One",
-    slug: "author-one",
-    role: "Essayist, Poet & Co-Curator",
-    shortBio:
-      "Dedicated to quiet morning reflections, classical nature poetry, and the unhurried craft of contemplative prose.",
-    fullBio: [
-      {
-        _type: "block",
-        children: [
-          {
-            _type: "span",
-            text: "Author One writes from the eastern perimeter of the sanctuary, where the morning sun first touches the row of sunflowers. With a deep affection for classical lyric poetry, quiet essays, and pastoral philosophy, their writings explore how stillness and gentle observation restore our connection to language.",
-          },
-        ],
-      },
-    ],
-    quote: "Words quiet as dawn, enduring as sunflowers.",
-    socialLinks: [
-      { platform: "Substack", url: "https://substack.com" },
-      { platform: "Goodreads", url: "https://goodreads.com" },
-      { platform: "Email", url: "mailto:letters@sunflowerreverie.com" },
-    ],
-  },
-  {
-    id: "author-2",
-    name: "Author Two",
-    slug: "author-two",
-    role: "Narrative Essayist, Diarist & Co-Curator",
-    shortBio:
-      "A chronicler of garden seasons, reflective memoirs, and intimate epistolary letters written beneath the afternoon sun.",
-    fullBio: [
-      {
-        _type: "block",
-        children: [
-          {
-            _type: "span",
-            text: "Author Two tends to the afternoon folios and chronicles of Sunflower Reverie. Focusing on personal journals, literary short narratives, and epistolary correspondences, their works celebrate the patience required to let thoughts mature like seeds beneath autumn soil.",
-          },
-        ],
-      },
-    ],
-    quote: "In the garden of language, every sentence seeks its own light.",
-    socialLinks: [
-      { platform: "Substack", url: "https://substack.com" },
-      { platform: "Goodreads", url: "https://goodreads.com" },
-      { platform: "Email", url: "mailto:letters@sunflowerreverie.com" },
-    ],
+    id: "nadvi",
+    name: "Nadvi",
+    slug: "nadvi",
+    role: "Author & Curator",
+    shortBio: undefined,
+    fullBio: undefined,
+    quote: undefined,
+    pictureUrl: undefined,
+    socialLinks: [],
   },
 ];
 
-const authorOneSummary: AuthorSummary = {
+const authorSummary: AuthorSummary = {
   id: MOCK_AUTHORS[0].id,
   name: MOCK_AUTHORS[0].name,
   slug: MOCK_AUTHORS[0].slug,
   role: MOCK_AUTHORS[0].role,
 };
 
-const authorTwoSummary: AuthorSummary = {
-  id: MOCK_AUTHORS[1].id,
-  name: MOCK_AUTHORS[1].name,
-  slug: MOCK_AUTHORS[1].slug,
-  role: MOCK_AUTHORS[1].role,
-};
+const authorOneSummary: AuthorSummary = authorSummary;
+const authorTwoSummary: AuthorSummary = authorSummary;
 
 /**
  * Centralized Mock Publications for Sunflower Reverie

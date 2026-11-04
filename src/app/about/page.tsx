@@ -110,7 +110,7 @@ export default async function AboutPage() {
                   )}
 
                   <p className="font-nunito text-sm sm:text-base text-[#3B3028]/90 leading-relaxed">
-                    {author.shortBio}
+                    {author.shortBio || "Sunflower Reverie is tended from a quiet literary sanctuary beneath the open sky, gathering unhurried reflections, poetic verses, and personal journals."}
                   </p>
                 </div>
 

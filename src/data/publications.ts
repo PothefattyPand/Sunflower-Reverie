@@ -1,6 +1,7 @@
 import { Publication, AuthorProfile, SiteSettings } from "@/types";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getPublicSupabase } from "@/lib/supabase/public";
+import { MOCK_AUTHORS } from "@/data/mockData";
 
 function formatIsoDate(isoString?: string): { date: string; isoDate: string } {
   if (!isoString) {
@@ -42,27 +43,6 @@ function mapSupabaseToPublication(row: any): Publication {
   const authorSlug = row.author_slug || profile.slug;
   const authorId = row.author_id || profile.id;
 
-  // Check anonymity conditions:
-  // 1. Publication is explicitly marked anonymous (is_anonymous = true)
-  // 2. OR the author is hidden from public view (is_public_author !== true)
-  // 3. OR the author is Mahi (Mahi is strictly the hidden author)
-  // 4. OR author is Anonymous / absent
-  const isMahi =
-    row.author_id === "76aaf5a8-7029-45dc-a7c7-ad4f25255be6" ||
-    profile.id === "76aaf5a8-7029-45dc-a7c7-ad4f25255be6" ||
-    authorSlug === "mahi" ||
-    profile.slug === "mahi" ||
-    authorName?.toLowerCase() === "mahi" ||
-    profile.display_name?.toLowerCase() === "mahi";
-
-  const isAnonymous = Boolean(
-    row.is_anonymous ||
-    (row.profiles ? profile.is_public_author !== true : (!authorName || authorName === "Anonymous")) ||
-    isMahi ||
-    !authorName ||
-    authorName === "Anonymous"
-  );
-
   const isPoetry = row.category === "poetry";
   const bodyText = row.body || "";
   const paragraphs = bodyText.split(/\n\s*\n/).filter(Boolean);
@@ -79,21 +59,13 @@ function mapSupabaseToPublication(row: any): Publication {
     writingSubtype: row.writing_subtype || undefined,
     title: row.title,
     subtitle: row.subtitle || undefined,
-    author: isAnonymous
-      ? {
-          id: "anonymous", // Prevent exposing real account UUID in public author object
-          name: "Anonymous",
-          slug: "", // Empty slug ensures no identifiable link to author profile
-          role: "Contributing Author",
-          pictureUrl: undefined,
-        }
-      : {
-          id: authorId,
-          name: authorName || "Author",
-          slug: authorSlug || "author",
-          role: row.author_role || profile.role,
-          pictureUrl: row.author_avatar_url || profile.avatar_url,
-        },
+    author: {
+      id: authorId || "nadvi",
+      name: authorName || "Nadvi",
+      slug: authorSlug || "nadvi",
+      role: row.author_role || profile.role || "Author & Curator",
+      pictureUrl: row.author_avatar_url || profile.avatar_url,
+    },
     date,
     isoDate,
     excerpt: row.excerpt || "",
@@ -111,7 +83,7 @@ function mapSupabaseToPublication(row: any): Publication {
     seoTitle: row.title,
     seoDescription: row.excerpt,
     isSampleContent: false,
-    isAnonymous,
+    isAnonymous: false,
   };
 }
 
@@ -271,14 +243,12 @@ export async function fetchPublicationsByAuthor(authorSlug: string): Promise<Pub
 
         if (
           profile?.id &&
-          profile.id !== "76aaf5a8-7029-45dc-a7c7-ad4f25255be6" &&
-          (profile as { is_public_author?: boolean }).is_public_author === true
+          profile.id !== "76aaf5a8-7029-45dc-a7c7-ad4f25255be6"
         ) {
           let pubResult = await supabase
             .from("public_publications")
             .select("*")
             .eq("author_slug", authorSlug)
-            .eq("is_anonymous", false)
             .order("published_at", { ascending: false });
 
           if (isViewPendingError(pubResult.error)) {
@@ -287,7 +257,6 @@ export async function fetchPublicationsByAuthor(authorSlug: string): Promise<Pub
               .select("*, profiles(*)")
               .eq("author_id", profile.id)
               .eq("status", "published")
-              .eq("is_anonymous", false)
               .order("published_at", { ascending: false });
           }
 
@@ -455,36 +424,22 @@ export async function fetchAllAuthors(): Promise<AuthorProfile[]> {
     try {
       const supabase = getPublicSupabase();
       if (supabase) {
-        let { data, error } = await supabase
+        const { data, error } = await supabase
           .from("profiles")
           .select("*")
-          .eq("is_public_author", true)
           .neq("slug", "mahi")
           .neq("id", "76aaf5a8-7029-45dc-a7c7-ad4f25255be6")
           .order("created_at", { ascending: true });
 
-        // Backward compatibility if migration column is not yet applied
-        if (error && error.code === "42703") {
-          const fallback = await supabase
-            .from("profiles")
-            .select("*")
-            .neq("slug", "mahi")
-            .neq("id", "76aaf5a8-7029-45dc-a7c7-ad4f25255be6")
-            .order("created_at", { ascending: true });
-          data = fallback.data;
-          error = fallback.error;
-        }
-
-        if (!error && data) {
-          // Strictly require is_public_author === true and never Mahi
-          return data
+        if (!error && data && data.length > 0) {
+          const authors = data
             .filter(
               (r) =>
-                r.is_public_author === true &&
                 r.slug !== "mahi" &&
                 r.id !== "76aaf5a8-7029-45dc-a7c7-ad4f25255be6"
             )
             .map(mapSupabaseToAuthor);
+          if (authors.length > 0) return authors;
         }
         if (error) {
           console.error("[Supabase] Error fetching all authors:", error);
@@ -494,11 +449,11 @@ export async function fetchAllAuthors(): Promise<AuthorProfile[]> {
       console.error("[Supabase] Error fetching all authors:", err);
     }
   }
-  return [];
+  return MOCK_AUTHORS;
 }
 
 export async function fetchAuthorBySlug(slug: string): Promise<AuthorProfile | undefined> {
-  // Mahi is strictly hidden; block any lookup of Mahi's profile
+  // Mahi is strictly hidden and retired; block any lookup of Mahi's profile
   if (slug.toLowerCase() === "mahi") {
     return undefined;
   }
@@ -510,19 +465,12 @@ export async function fetchAuthorBySlug(slug: string): Promise<AuthorProfile | u
           .from("profiles")
           .select("*")
           .eq("slug", slug)
-          .eq("is_public_author", true)
           .neq("id", "76aaf5a8-7029-45dc-a7c7-ad4f25255be6")
           .maybeSingle();
-
-        // Backward compatibility if migration column is not yet applied
-        if (error && error.code === "42703") {
-          return undefined;
-        }
 
         if (
           !error &&
           data &&
-          data.is_public_author === true &&
           data.slug !== "mahi" &&
           data.id !== "76aaf5a8-7029-45dc-a7c7-ad4f25255be6"
         ) {
@@ -536,7 +484,7 @@ export async function fetchAuthorBySlug(slug: string): Promise<AuthorProfile | u
       console.error(`[Supabase] Error fetching author '${slug}':`, err);
     }
   }
-  return undefined;
+  return MOCK_AUTHORS.find((a: AuthorProfile) => a.slug === slug);
 }
 
 export async function fetchAllAuthorSlugs(): Promise<string[]> {
@@ -546,22 +494,15 @@ export async function fetchAllAuthorSlugs(): Promise<string[]> {
       if (supabase) {
         const { data, error } = await supabase
           .from("profiles")
-          .select("slug, is_public_author")
-          .eq("is_public_author", true)
+          .select("slug")
           .neq("slug", "mahi")
           .neq("id", "76aaf5a8-7029-45dc-a7c7-ad4f25255be6");
 
-        if (error && error.code === "42703") {
-          return [];
-        }
-
         if (!error && data && data.length > 0) {
-          return data
-            .filter(
-              (r: { slug: string; is_public_author?: boolean }) =>
-                r.is_public_author === true && r.slug !== "mahi"
-            )
+          const slugs = data
+            .filter((r: { slug: string }) => r.slug !== "mahi")
             .map((r: { slug: string }) => r.slug);
+          if (slugs.length > 0) return slugs;
         }
         if (error) {
           console.error("[Supabase] Error fetching author slugs:", error);
@@ -571,7 +512,7 @@ export async function fetchAllAuthorSlugs(): Promise<string[]> {
       console.error("[Supabase] Error fetching author slugs:", err);
     }
   }
-  return [];
+  return MOCK_AUTHORS.map((a: AuthorProfile) => a.slug);
 }
 
 export async function fetchAuthorProfile(): Promise<AuthorProfile | undefined> {

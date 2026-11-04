@@ -5,7 +5,7 @@ import { ForgotPasswordForm } from "@/components/author/ForgotPasswordForm";
 
 export const metadata: Metadata = {
   title: "Recover Password | Author Portal | Sunflower Reverie",
-  description: "Private password recovery for the two co-curators of Sunflower Reverie.",
+  description: "Private password recovery for the authorized author of Sunflower Reverie.",
   robots: {
     index: false,
     follow: false,

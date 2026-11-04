@@ -168,10 +168,10 @@ export function ResetPasswordForm() {
         <div className="mt-8 pt-5 border-t border-[#EADBCE]/80 text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 text-xs text-[#718B55] font-nunito font-semibold">
             <Sparkles className="w-3.5 h-3.5 text-[#E8AF30]" />
-            <span>Strict Two-Author Boundary</span>
+            <span>Single-Author Sanctuary</span>
           </div>
           <p className="font-nunito text-xs text-[#6B584C] leading-relaxed">
-            Only authorized co-curators with an active recovery session can complete password updates.
+            Only the authorized author with an active recovery session can complete password updates.
           </p>
         </div>
       </div>

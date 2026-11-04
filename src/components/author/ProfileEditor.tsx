@@ -56,7 +56,7 @@ export function ProfileEditor({ initialProfile }: ProfileEditorProps) {
 
   const [displayName, setDisplayName] = useState(initialProfile.display_name || "");
   const [slug, setSlug] = useState(initialProfile.slug || "");
-  const [role, setRole] = useState(initialProfile.role || "Co-Curator & Author");
+  const [role, setRole] = useState(initialProfile.role || "Author & Curator");
   const [shortBio, setShortBio] = useState(initialProfile.short_bio || "");
   const [fullBio, setFullBio] = useState(initialProfile.full_bio || "");
   const [quote, setQuote] = useState(initialProfile.quote || "");
@@ -185,7 +185,7 @@ export function ProfileEditor({ initialProfile }: ProfileEditorProps) {
           <span>Back to My Writing Desk</span>
         </Link>
 
-        {initialProfile.is_public_author && slug ? (
+        {slug && (
           <Link
             href={`/authors/${slug}`}
             target="_blank"
@@ -195,10 +195,6 @@ export function ProfileEditor({ initialProfile }: ProfileEditorProps) {
             <span>View Public Author Folio</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </Link>
-        ) : (
-          <span className="inline-flex items-center gap-1.5 text-xs font-patrick text-[#6B584C] px-3 py-1.5 rounded-full bg-[#FFF9EC] border border-[#EADBCE]">
-            <span>Private Contributing Desk</span>
-          </span>
         )}
       </div>
 
@@ -350,15 +346,9 @@ export function ProfileEditor({ initialProfile }: ProfileEditorProps) {
                   placeholder="e.g., rowan-reed"
                   className="w-full px-4 py-2.5 rounded-2xl bg-[#FFF9EC] border border-[#EADBCE] text-sm font-nunito font-semibold text-[#3B3028] focus:outline-hidden focus:border-[#E8AF30] focus:ring-1 focus:ring-[#E8AF30] transition-colors"
                 />
-                {initialProfile.is_public_author ? (
-                  <span className="text-[11px] font-nunito text-[#6B584C] block">
-                    Public link: <code className="bg-[#FFF3D9] px-1 py-0.5 rounded text-[10px]">/authors/{slug || "slug"}</code>
-                  </span>
-                ) : (
-                  <span className="text-[11px] font-nunito text-[#6B584C] block">
-                    Note: Your author profile is currently private. Public writings will display as &ldquo;Anonymous&rdquo;.
-                  </span>
-                )}
+                <span className="text-[11px] font-nunito text-[#6B584C] block">
+                  Public folio: <code className="bg-[#FFF3D9] px-1 py-0.5 rounded text-[10px]">/authors/{slug || "slug"}</code>
+                </span>
               </div>
             </div>
 
@@ -375,7 +365,7 @@ export function ProfileEditor({ initialProfile }: ProfileEditorProps) {
                 type="text"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                placeholder="e.g., Essayist, Poet & Co-Curator"
+                placeholder="e.g., Author & Curator"
                 className="w-full px-4 py-2.5 rounded-2xl bg-[#FFF9EC] border border-[#EADBCE] text-sm font-nunito text-[#3B3028] focus:outline-hidden focus:border-[#E8AF30] focus:ring-1 focus:ring-[#E8AF30] transition-colors"
               />
             </div>
