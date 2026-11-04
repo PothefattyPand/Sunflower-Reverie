@@ -221,6 +221,12 @@ assert(
   'Migration safely retains is_anonymous column with default false'
 );
 
+assert(
+  migrationSql.includes('ADD COLUMN interests TEXT[] DEFAULT') &&
+  migrationSql.includes('column_name = \'interests\''),
+  'Migration idempotently adds profiles.interests column with TEXT[] default to support literary interests'
+);
+
 // -----------------------------------------------------------------------------
 // Group 6: Staged Rollout, Verification & Rollback Plans
 // -----------------------------------------------------------------------------

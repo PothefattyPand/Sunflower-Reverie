@@ -252,9 +252,26 @@ USING (auth.uid() = user_id);
 -- ------------------------------------------------------------------------------
 -- 6. profiles SCHEMA, INITIALIZATION, PRIVILEGES & RLS
 -- ------------------------------------------------------------------------------
--- Ensure is_public_author column exists safely
+-- Ensure required columns exist safely (idempotent schema evolution)
 DO $$
 BEGIN
+    -- 1. Ensure interests column exists (TEXT[] DEFAULT '{}')
+    -- Supports author literary interests and writing themes in profile editor
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'profiles'
+          AND column_name = 'interests'
+    ) THEN
+        ALTER TABLE public.profiles
+        ADD COLUMN interests TEXT[] DEFAULT '{}'::TEXT[];
+    ELSE
+        ALTER TABLE public.profiles
+        ALTER COLUMN interests SET DEFAULT '{}'::TEXT[];
+    END IF;
+
+    -- 2. Ensure is_public_author column exists safely (BOOLEAN DEFAULT TRUE)
     IF NOT EXISTS (
         SELECT 1
         FROM information_schema.columns
@@ -299,7 +316,7 @@ BEGIN
         NULL,              -- Left empty for Nadvi to write in Author Dashboard
         NULL,              -- Left empty for Nadvi to upload in Author Dashboard
         '[]'::JSONB,       -- Left empty for Nadvi to set in Author Dashboard
-        '{}',              -- Left empty for Nadvi to set in Author Dashboard
+        '{}'::TEXT[],      -- Left empty for Nadvi to set in Author Dashboard
         TRUE
     )
     ON CONFLICT (id) DO UPDATE SET
@@ -686,6 +703,18 @@ BEGIN
     -- Assert public_publications has exactly 22 columns
     IF (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'public_publications') <> 22 THEN
         RAISE EXCEPTION 'POST-MIGRATION ASSERTION FAILED: public_publications column count is not 22';
+    END IF;
+
+    -- Assert profiles.interests column exists with ARRAY type
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'profiles'
+          AND column_name = 'interests'
+          AND data_type = 'ARRAY'
+    ) THEN
+        RAISE EXCEPTION 'POST-MIGRATION ASSERTION FAILED: profiles.interests column missing or not array type';
     END IF;
 
     -- Assert is_sole_public_author helper functions correctly for Nadvi
